@@ -66,8 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Bypass temporal para admin
-    if (email === 'jl7599409@gmail.com' && password === '123456') {
+    // Bypass para usuarios registrados
+    const bypassUsers = [
+      { email: 'jl7599409@gmail.com', password: '123456' },
+      { email: 'codeolsoftware@gmail.com', password: '123456' }
+    ];
+    
+    const bypass = bypassUsers.find(u => u.email === email && u.password === password);
+    if (bypass) {
       setUser({ email, isAdmin: true });
       return true;
     }

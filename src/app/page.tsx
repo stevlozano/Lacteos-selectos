@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { CategoryFilter } from '@/components/CategoryFilter';
 import { ProductCard } from '@/components/ProductCard';
@@ -10,11 +10,20 @@ import { useProducts } from '@/context/ProductsContext';
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const { products } = useProducts();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredProducts = activeCategory
     ? products.filter(p => p.category === activeCategory)
     : products;
+
+  // Prevent hydration mismatch by not rendering products until mounted
+  const displayProducts = mounted ? filteredProducts : [];
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors">
@@ -31,12 +40,18 @@ export default function Home() {
             </div>
             
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map(product => (
+              {displayProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
             
-            {filteredProducts.length === 0 && (
+            {!mounted && (
+              <div className="py-12 text-center">
+                <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-neutral-700 animate-pulse">inventory_2</span>
+              </div>
+            )}
+            
+            {mounted && displayProducts.length === 0 && (
               <p className="text-center text-neutral-500 dark:text-neutral-400 py-12">
                 No hay productos en esta categoría
               </p>

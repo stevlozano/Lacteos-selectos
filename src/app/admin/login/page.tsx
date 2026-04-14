@@ -59,66 +59,72 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-black dark:text-white mb-2">
-            Panel de Administración
+    <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-12">
+          <span className="material-symbols-outlined text-6xl text-neutral-300 dark:text-neutral-700 mb-4">admin_panel_settings</span>
+          <h1 className="text-4xl font-extralight tracking-tight text-black dark:text-white">
+            Admin
           </h1>
-          <p className="text-neutral-600 dark:text-neutral-400">
+          <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-2 uppercase tracking-widest">
             Lácteos Selectos
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex mb-6 border-b border-neutral-200 dark:border-neutral-700">
+        {/* Tabs Minimalistas */}
+        <div className="flex mb-8 border-b border-neutral-100 dark:border-neutral-900">
           <button
             onClick={() => setActiveTab('login')}
-            className={`flex-1 py-3 text-sm font-medium transition-colors
+            className={`flex-1 py-4 text-sm font-light tracking-wide transition-all
               ${activeTab === 'login' 
-                ? 'border-b-2 border-green-600 text-green-600 dark:text-green-400' 
-                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
+                ? 'border-b border-black dark:border-white text-black dark:text-white' 
+                : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-400'
               }`}
           >
-            🔐 Iniciar Sesión
+            <span className="material-symbols-outlined text-lg mr-2 align-text-bottom">login</span>
+            Entrar
           </button>
           <button
             onClick={() => isRegistrationOpen && setActiveTab('register')}
             disabled={!isRegistrationOpen}
-            className={`flex-1 py-3 text-sm font-medium transition-colors
+            className={`flex-1 py-4 text-sm font-light tracking-wide transition-all
               ${activeTab === 'register' 
-                ? 'border-b-2 border-green-600 text-green-600 dark:text-green-400' 
+                ? 'border-b border-black dark:border-white text-black dark:text-white' 
                 : isRegistrationOpen
-                  ? 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
-                  : 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed'
+                  ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-400'
+                  : 'text-neutral-200 dark:text-neutral-800 cursor-not-allowed'
               }`}
           >
-            📝 Registro {!isRegistrationOpen && '(Cerrado)'}
+            <span className="material-symbols-outlined text-lg mr-2 align-text-bottom">person_add</span>
+            Registro {hasRegisteredUsers && '(Cerrado)'}
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-sm rounded-lg">
+          <div className="mb-6 p-4 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm">
+            <span className="material-symbols-outlined text-sm mr-2 align-text-bottom">error</span>
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-sm rounded-lg">
+          <div className="mb-6 p-4 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm">
+            <span className="material-symbols-outlined text-sm mr-2 align-text-bottom">check_circle</span>
             {success}
           </div>
         )}
 
         {!isRegistrationOpen && hasRegisteredUsers && activeTab === 'register' && (
-          <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-sm rounded-lg">
-            ⚠️ El registro está cerrado. Ya existe un administrador registrado en el sistema.
+          <div className="mb-6 p-4 border border-neutral-100 dark:border-neutral-900 bg-neutral-50 dark:bg-neutral-900/30 text-neutral-500 dark:text-neutral-500 text-sm">
+            <span className="material-symbols-outlined text-sm mr-2 align-text-bottom">lock</span>
+            El registro está cerrado. Ya existe un administrador.
           </div>
         )}
 
         {activeTab === 'login' ? (
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
                 Email
               </label>
               <input
@@ -126,15 +132,15 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg 
-                           bg-white dark:bg-neutral-700 text-black dark:text-white
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                placeholder="admin@lacteos.com"
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-lg font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                placeholder="tu@email.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
                 Contraseña
               </label>
               <input
@@ -142,26 +148,27 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg 
-                           bg-white dark:bg-neutral-700 text-black dark:text-white
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-lg font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
                 placeholder="••••••••"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg 
-                         transition-colors flex items-center justify-center gap-2"
+              className="w-full mt-8 bg-black dark:bg-white text-white dark:text-black py-4 
+                         font-light tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200 
+                         transition-colors flex items-center justify-center gap-3"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>
-              Iniciar Sesión
+              <span className="material-symbols-outlined">arrow_forward</span>
+              Entrar
             </button>
           </form>
         ) : (
-          <form onSubmit={handleRegister} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
                 Email
               </label>
               <input
@@ -170,16 +177,16 @@ export default function AdminLogin() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={!isRegistrationOpen}
-                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg 
-                           bg-white dark:bg-neutral-700 text-black dark:text-white
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-lg font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors
+                           disabled:opacity-30"
                 placeholder="tu@email.com"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
                 Contraseña
               </label>
               <input
@@ -188,17 +195,17 @@ export default function AdminLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={!isRegistrationOpen}
-                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg 
-                           bg-white dark:bg-neutral-700 text-black dark:text-white
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-lg font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors
+                           disabled:opacity-30"
                 placeholder="Mínimo 6 caracteres"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                Confirmar Contraseña
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
+                Confirmar
               </label>
               <input
                 type="password"
@@ -206,10 +213,10 @@ export default function AdminLogin() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 disabled={!isRegistrationOpen}
-                className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg 
-                           bg-white dark:bg-neutral-700 text-black dark:text-white
-                           focus:ring-2 focus:ring-green-500 focus:border-transparent
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-lg font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors
+                           disabled:opacity-30"
                 placeholder="Repite tu contraseña"
               />
             </div>
@@ -217,31 +224,31 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={!isRegistrationOpen}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-neutral-400 
-                         text-white font-medium py-3 rounded-lg 
-                         transition-colors flex items-center justify-center gap-2
-                         disabled:cursor-not-allowed"
+              className="w-full mt-8 bg-black dark:bg-white text-white dark:text-black py-4 
+                         font-light tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200 
+                         transition-colors flex items-center justify-center gap-3
+                         disabled:opacity-30 disabled:cursor-not-allowed"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" x2="20" y1="8" y2="14"/><line x1="23" x2="17" y1="11" y2="11"/></svg>
-              Crear Cuenta de Admin
+              <span className="material-symbols-outlined">person_add</span>
+              Crear Cuenta
             </button>
           </form>
         )}
 
-        <div className="mt-6 text-center">
+        <div className="mt-12 text-center">
           <Link 
             href="/" 
-            className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400"
+            className="text-xs font-light text-neutral-400 hover:text-black dark:hover:text-white transition-colors uppercase tracking-widest"
           >
-            ← Volver a la tienda
+            <span className="material-symbols-outlined text-sm mr-1 align-text-bottom">arrow_back</span>
+            Volver
           </Link>
         </div>
 
-        <div className="mt-4 p-3 bg-neutral-100 dark:bg-neutral-700 rounded-lg text-xs text-neutral-600 dark:text-neutral-400">
-          <p className="font-medium mb-1">ℹ️ Información:</p>
-          <p>• Solo puede existir un administrador en el sistema.</p>
-          <p>• Una vez registrado, el registro se cierra automáticamente.</p>
-          {!isRegistrationOpen && <p className="text-red-500 mt-1">• El registro está actualmente cerrado.</p>}
+        <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-900 text-center">
+          <p className="text-[10px] font-light text-neutral-300 dark:text-neutral-700 uppercase tracking-widest">
+            Solo un administrador • Registro único
+          </p>
         </div>
       </div>
     </div>

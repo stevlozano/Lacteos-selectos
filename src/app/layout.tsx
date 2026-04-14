@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MaterialSymbols } from "@/components/MaterialSymbols";
+import { PageLoader } from "@/components/PageLoader";
 import { CartProvider } from "@/context/CartContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -37,17 +38,19 @@ export default function RootLayout({
         <MaterialSymbols />
       </head>
       <body className="min-h-full flex flex-col bg-white dark:bg-neutral-900 transition-colors">
-        <ThemeProvider>
-          <AuthProvider>
-            <ProductsProvider>
-              <OrdersProvider>
-                <CartProvider>
-                  {children}
-                </CartProvider>
-              </OrdersProvider>
-            </ProductsProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <PageLoader>
+          <ThemeProvider>
+            <AuthProvider>
+              <ProductsProvider>
+                <OrdersProvider>
+                  <CartProvider>
+                    {children}
+                  </CartProvider>
+                </OrdersProvider>
+              </ProductsProvider>
+            </AuthProvider>
+          </ThemeProvider>
+        </PageLoader>
       </body>
     </html>
   );

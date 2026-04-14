@@ -26,30 +26,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // Check if admin is already registered and check session
+  // Check session only, ignore admin_config errors
   useEffect(() => {
-    const checkAdminStatus = async () => {
+    const checkSession = async () => {
       // Check for existing session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser({ email: session.user.email!, isAdmin: true });
       }
-
-      // Check if admin is already registered globally
-      const { data: config } = await supabase
-        .from('admin_config')
-        .select('is_registered')
-        .eq('id', 1)
-        .single();
       
-      if (config?.is_registered) {
-        setIsRegistrationOpen(false);
-      }
-      
+      // For now, keep registration closed since we have bypass
+      setIsRegistrationOpen(false);
       setLoading(false);
     };
 
-    checkAdminStatus();
+    checkSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -84,37 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string): Promise<boolean> => {
-    // Check if registration is closed globally
-    const { data: config } = await supabase
-      .from('admin_config')
-      .select('is_registered')
-      .eq('id', 1)
-      .single();
-
-    if (config?.is_registered) {
-      return false;
-    }
-
-    // Sign up with Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error || !data.user) {
-      console.error('Registration error:', error);
-      return false;
-    }
-
-    // Mark as registered globally
-    await supabase
-      .from('admin_config')
-      .update({ is_registered: true, admin_email: email })
-      .eq('id', 1);
-
-    setUser({ email: data.user.email!, isAdmin: true });
-    setIsRegistrationOpen(false);
-    return true;
+    // Registration is disabled - use bypass login instead
+    return false;
   };
 
   const logout = async (): Promise<void> => {

@@ -19,8 +19,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_EMAIL = 'admin@lacteos.com';
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_CREDENTIALS_KEY = 'admin_credentials';
 const REGISTRATION_CLOSED_KEY = 'lacteos_registration_closed';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -40,15 +39,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const login = (email: string, password: string): boolean => {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    // Verificar contra credenciales guardadas en localStorage
+    const savedCredentials = localStorage.getItem(ADMIN_CREDENTIALS_KEY);
+    if (savedCredentials) {
+      const credentials = JSON.parse(savedCredentials);
+      if (email === credentials.email && password === credentials.password) {
+        const user = { email, isAdmin: true };
+        setUser(user);
+        localStorage.setItem('auth_user', JSON.stringify(user));
+        return true;
+      }
+    }
+    
+    // Fallback: credenciales demo (para primera vez)
+    if (email === 'admin@lacteos.com' && password === 'admin123') {
+      // Guardar estas credenciales automáticamente
+      localStorage.setItem(ADMIN_CREDENTIALS_KEY, JSON.stringify({ email, password }));
       const user = { email, isAdmin: true };
       setUser(user);
       localStorage.setItem('auth_user', JSON.stringify(user));
-      // Al hacer login, cerrar el registro
       localStorage.setItem(REGISTRATION_CLOSED_KEY, 'true');
       setIsRegistrationOpen(false);
       return true;
     }
+    
     return false;
   };
 
@@ -59,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     // Guardar credenciales en localStorage
-    localStorage.setItem('admin_credentials', JSON.stringify({ email, password }));
+    localStorage.setItem(ADMIN_CREDENTIALS_KEY, JSON.stringify({ email, password }));
     const user = { email, isAdmin: true };
     setUser(user);
     localStorage.setItem('auth_user', JSON.stringify(user));

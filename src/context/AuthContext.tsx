@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Check session and if any users exist (for single registration)
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // Check for existing Supabase session
+      // Check for existing Supabase session (only update if no user from localStorage)
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         const userData = { email: session.user.email!, isAdmin: true };
@@ -65,12 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkAuthStatus();
 
-    // Listen for auth changes
+    // Listen for auth changes - only update if there's an actual change
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        setUser({ email: session.user.email!, isAdmin: true });
-      } else {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const userData = { email: session.user.email!, isAdmin: true };
+        setUser(userData);
+        localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userData));
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        localStorage.removeItem(STORAGE_USER_KEY);
       }
     });
 

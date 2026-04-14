@@ -12,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
+  createAdminUser: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isRegistrationOpen: boolean;
@@ -109,6 +110,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
+  const createAdminUser = async (email: string, password: string): Promise<boolean> => {
+    // Only allow if current user is authenticated
+    if (!user) {
+      console.error('Only authenticated admins can create new users');
+      return false;
+    }
+    
+    try {
+      // Use Supabase Auth to create a new user
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error || !data.user) {
+        console.error('Error creating admin user:', error);
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Exception creating admin user:', err);
+      return false;
+    }
+  };
+
   const logout = async (): Promise<void> => {
     await supabase.auth.signOut();
     setUser(null);
@@ -119,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user, 
       login, 
       register, 
+      createAdminUser,
       logout, 
       isAuthenticated: !!user,
       isRegistrationOpen,

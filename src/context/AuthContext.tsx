@@ -26,21 +26,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const [loading, setLoading] = useState(true);
 
-  // Check session only, ignore admin_config errors
+  // Check session and if any users exist (for single registration)
   useEffect(() => {
-    const checkSession = async () => {
+    const checkAuthStatus = async () => {
       // Check for existing session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser({ email: session.user.email!, isAdmin: true });
       }
       
-      // For now, keep registration closed since we have bypass
-      setIsRegistrationOpen(false);
+      // Check if any users exist in auth.users (single registration control)
+      const { data: users, error } = await supabase
+        .from('auth_users_view')
+        .select('id')
+        .limit(1);
+      
+      // If there are users, close registration
+      if (users && users.length > 0) {
+        setIsRegistrationOpen(false);
+      } else {
+        setIsRegistrationOpen(true);
+      }
+      
       setLoading(false);
     };
 
-    checkSession();
+    checkAuthStatus();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -75,8 +86,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (email: string, password: string): Promise<boolean> => {
-    // Registration is disabled - use bypass login instead
-    return false;
+    // Sign up with Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
+      console.error('Registration error:', error);
+      return false;
+    }
+
+    // Close registration after first successful registration
+    setIsRegistrationOpen(false);
+    setUser({ email: data.user.email!, isAdmin: true });
+    return true;
   };
 
   const logout = async (): Promise<void> => {

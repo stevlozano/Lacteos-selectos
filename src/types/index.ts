@@ -5,6 +5,7 @@ export interface Product {
   price: number;
   unit: string;
   category: 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
+  image?: string;
 }
 
 export interface CartItem extends Product {

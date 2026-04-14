@@ -22,22 +22,33 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STORAGE_USER_KEY = 'auth_user';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    // Check localStorage on initial load
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_USER_KEY);
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const [loading, setLoading] = useState(true);
 
   // Check session and if any users exist (for single registration)
   useEffect(() => {
     const checkAuthStatus = async () => {
-      // Check for existing session
+      // Check for existing Supabase session
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        setUser({ email: session.user.email!, isAdmin: true });
+        const userData = { email: session.user.email!, isAdmin: true };
+        setUser(userData);
+        localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userData));
       }
       
       // Check if any users exist in auth.users (single registration control)
-      const { data: users, error } = await supabase
+      const { data: users } = await supabase
         .from('auth_users_view')
         .select('id')
         .limit(1);
@@ -75,7 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const bypass = bypassUsers.find(u => u.email === email && u.password === password);
     if (bypass) {
-      setUser({ email, isAdmin: true });
+      const userData = { email, isAdmin: true };
+      setUser(userData);
+      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userData));
       return true;
     }
     
@@ -88,7 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return false;
     }
 
-    setUser({ email: data.user.email!, isAdmin: true });
+    const userData = { email: data.user.email!, isAdmin: true };
+    setUser(userData);
+    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userData));
     return true;
   };
 
@@ -138,6 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async (): Promise<void> => {
     await supabase.auth.signOut();
+    localStorage.removeItem(STORAGE_USER_KEY);
     setUser(null);
   };
 

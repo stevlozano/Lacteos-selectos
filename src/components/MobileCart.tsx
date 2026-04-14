@@ -25,11 +25,11 @@ export function MobileCart() {
     setMounted(true);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Guardar orden en el sistema
-    addOrder({
+    // Guardar orden en el sistema (await para asegurar que se guarde)
+    await addOrder({
       items: items.map(item => ({
         id: item.id,
         name: item.name,

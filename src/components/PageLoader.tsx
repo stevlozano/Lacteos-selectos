@@ -17,7 +17,7 @@ export function PageLoader({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white dark:bg-black transition-colors">
-        {/* Minimalist spinner */}
+        {/* Minimalist spinner - respeta modo oscuro via clases Tailwind */}
         <div className="relative">
           <div className="w-12 h-12 border-2 border-neutral-200 dark:border-neutral-800 rounded-full"></div>
           <div className="absolute top-0 left-0 w-12 h-12 border-2 border-black dark:border-white rounded-full border-t-transparent animate-spin"></div>

@@ -18,7 +18,6 @@ export default function AdminPage() {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -38,117 +37,105 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black flex">
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-neutral-100 dark:border-neutral-900 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 text-neutral-400 hover:text-black dark:hover:text-white"
-          >
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-          <h1 className="text-lg font-extralight tracking-tight text-black dark:text-white">Admin</h1>
+      {/* Sidebar - Solo Desktop */}
+      <aside className="hidden lg:flex flex-col w-72 bg-white dark:bg-black border-r border-neutral-100 dark:border-neutral-900 h-screen sticky top-0">
+        <div className="p-8">
+          <h1 className="text-2xl font-extralight tracking-tight text-black dark:text-white">
+            Lácteos
+          </h1>
+          <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-1 uppercase tracking-widest">
+            Panel Admin
+          </p>
+          <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-900">
+            <p className="text-sm font-light text-neutral-600 dark:text-neutral-400">{user?.email}</p>
+          </div>
         </div>
-        <span className="text-xs font-light text-neutral-400 uppercase tracking-widest">{navItems.find(n => n.id === currentView)?.label}</span>
-      </div>
 
-      {/* Sidebar - Desktop & Mobile */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white dark:bg-black border-r border-neutral-100 dark:border-neutral-900 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="h-full flex flex-col">
-          {/* Close button for mobile */}
-          <div className="lg:hidden p-4 flex justify-end">
+        <nav className="px-4 py-4 flex-1">
+          {navItems.map((item) => (
             <button
-              onClick={() => setSidebarOpen(false)}
-              className="p-2 text-neutral-400 hover:text-black dark:hover:text-white"
+              key={item.id}
+              onClick={() => setCurrentView(item.id)}
+              className={`w-full group flex items-center gap-4 px-6 py-4 mx-2 rounded-full transition-all duration-300
+                ${currentView === item.id
+                  ? 'bg-black dark:bg-white text-white dark:text-black' 
+                  : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
+                }`}
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-xl">{item.icon}</span>
+              <span className="text-sm font-light tracking-wide">{item.label}</span>
             </button>
-          </div>
+          ))}
+        </nav>
 
-          <div className="p-8 hidden lg:block">
-            <h1 className="text-2xl font-extralight tracking-tight text-black dark:text-white">
-              Lácteos
-            </h1>
-            <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-1 uppercase tracking-widest">
-              Panel Admin
-            </p>
-            <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-900">
-              <p className="text-sm font-light text-neutral-600 dark:text-neutral-400">{user?.email}</p>
-            </div>
-          </div>
+        <div className="p-6 border-t border-neutral-100 dark:border-neutral-900">
+          <button
+            onClick={toggleTheme}
+            className="w-full flex items-center gap-4 px-6 py-4 rounded-full text-neutral-400 
+                       hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
+          >
+            <span className="material-symbols-outlined text-xl">
+              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+            <span className="text-sm font-light tracking-wide">
+              {theme === 'dark' ? 'Claro' : 'Oscuro'}
+            </span>
+          </button>
+          
+          <button
+            onClick={() => {
+              logout();
+              router.push('/admin/login');
+            }}
+            className="w-full flex items-center gap-4 px-6 py-4 mt-2 rounded-full text-neutral-400 
+                       hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
+          >
+            <span className="material-symbols-outlined text-xl">logout</span>
+            <span className="text-sm font-light tracking-wide">Salir</span>
+          </button>
 
-          <nav className="px-4 py-4 flex-1">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setCurrentView(item.id);
-                  setSidebarOpen(false);
-                }}
-                className={`w-full group flex items-center gap-4 px-6 py-4 mx-2 rounded-full transition-all duration-300
-                  ${currentView === item.id
-                    ? 'bg-black dark:bg-white text-white dark:text-black' 
-                    : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
-                  }`}
-              >
-                <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                <span className="text-sm font-light tracking-wide">{item.label}</span>
-              </button>
-            ))}
-          </nav>
-
-          <div className="p-6 border-t border-neutral-100 dark:border-neutral-900">
-            <button
-              onClick={toggleTheme}
-              className="w-full flex items-center gap-4 px-6 py-4 rounded-full text-neutral-400 
-                         hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
-            >
-              <span className="material-symbols-outlined text-xl">
-                {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-              </span>
-              <span className="text-sm font-light tracking-wide">
-                {theme === 'dark' ? 'Claro' : 'Oscuro'}
-              </span>
-            </button>
-            
-            <button
-              onClick={() => {
-                logout();
-                router.push('/admin/login');
-              }}
-              className="w-full flex items-center gap-4 px-6 py-4 mt-2 rounded-full text-neutral-400 
-                         hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
-            >
-              <span className="material-symbols-outlined text-xl">logout</span>
-              <span className="text-sm font-light tracking-wide">Salir</span>
-            </button>
-
-            <Link
-              href="/"
-              className="w-full flex items-center gap-4 px-6 py-4 mt-2 rounded-full text-neutral-400 
-                         hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
-            >
-              <span className="material-symbols-outlined text-xl">storefront</span>
-              <span className="text-sm font-light tracking-wide">Tienda</span>
-            </Link>
-          </div>
+          <Link
+            href="/"
+            className="w-full flex items-center gap-4 px-6 py-4 mt-2 rounded-full text-neutral-400 
+                       hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
+          >
+            <span className="material-symbols-outlined text-xl">storefront</span>
+            <span className="text-sm font-light tracking-wide">Tienda</span>
+          </Link>
         </div>
       </aside>
 
-      {/* Overlay for mobile */}
-      {sidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 z-30 bg-black/20"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
       {/* Main content */}
-      <main className="flex-1 p-4 lg:p-12 pt-16 lg:pt-12 overflow-auto">
+      <main className="flex-1 p-4 lg:p-12 pb-24 lg:pb-12 pt-16 lg:pt-12 overflow-auto">
         {currentView === 'dashboard' && <DashboardView />}
         {currentView === 'products' && <ProductsView />}
         {currentView === 'orders' && <OrdersView />}
       </main>
+
+      {/* Bottom Navigation Bar - Mobile (estilo WhatsApp) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-neutral-100 dark:border-neutral-900 z-50">
+        <div className="flex items-center justify-around">
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setCurrentView(item.id)}
+              className={`flex flex-col items-center py-3 px-4 flex-1 transition-colors
+                ${currentView === item.id
+                  ? 'text-black dark:text-white'
+                  : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
+                }`}
+            >
+              <span className={`material-symbols-outlined text-2xl ${currentView === item.id ? 'fill' : ''}`}>
+                {item.icon}
+              </span>
+              <span className="text-[10px] font-light tracking-wide mt-1">{item.label}</span>
+              {currentView === item.id && (
+                <span className="absolute bottom-0 w-12 h-0.5 bg-black dark:bg-white rounded-t-full" />
+              )}
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

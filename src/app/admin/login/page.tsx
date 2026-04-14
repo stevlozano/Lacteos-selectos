@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { GoogleLoader } from '@/components/GoogleLoader';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+  const [loading, setLoading] = useState(false);
   const { login, register, isRegistrationOpen, hasRegisteredUsers } = useAuth();
   const router = useRouter();
 
@@ -19,12 +21,14 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
     
     const success = await login(email, password);
     if (success) {
       router.push('/admin/dashboard');
     } else {
       setError('Credenciales incorrectas.');
+      setLoading(false);
     }
   };
 
@@ -157,12 +161,20 @@ export default function AdminLogin() {
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full mt-8 bg-black dark:bg-white text-white dark:text-black py-4 
                          font-light tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200 
-                         transition-colors flex items-center justify-center gap-3"
+                         transition-colors flex items-center justify-center gap-3
+                         disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              <span className="material-symbols-outlined">arrow_forward</span>
-              Entrar
+              {loading ? (
+                <GoogleLoader size="sm" />
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">arrow_forward</span>
+                  Entrar
+                </>
+              )}
             </button>
           </form>
         ) : (

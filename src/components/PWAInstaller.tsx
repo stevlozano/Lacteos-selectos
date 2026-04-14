@@ -55,26 +55,39 @@ export function PWAInstaller() {
   }, [handleBeforeInstallPrompt, handleAppInstalled]);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      
+      setDeferredPrompt(null);
+      setShowInstall(false);
     }
-    
-    setDeferredPrompt(null);
-    setShowInstall(false);
   };
 
   const handleDismiss = () => {
     setShowInstall(false);
-    // Store dismissal in localStorage to not show again for 24 hours
     localStorage.setItem('pwa-dismissed', Date.now().toString());
   };
+
+  // For desktop: show manual install instructions if no deferred prompt after timeout
+  const [showManualInstall, setShowManualInstall] = useState(false);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!deferredPrompt && !isInstalled) {
+        setShowManualInstall(true);
+        setShowInstall(true);
+      }
+    }, 3000); // Show after 3 seconds if no auto prompt
+    
+    return () => clearTimeout(timer);
+  }, [deferredPrompt, isInstalled]);
 
   if (!showInstall || isInstalled) return null;
 
@@ -89,14 +102,21 @@ export function PWAInstaller() {
             Instalar Lácteos Selectos
           </h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
-            Instala nuestra app para acceder más rápido y recibir notificaciones de tus pedidos.
+            {showManualInstall 
+              ? "Haz clic en el menú de Chrome (⋮) → 'Instalar Lácteos Selectos' o usa el botón de Chrome en la barra de direcciones."
+              : "Instala nuestra app para acceder más rápido y recibir notificaciones de tus pedidos."}
           </p>
           <div className="flex gap-2 mt-3">
             <button
               onClick={handleInstall}
-              className="flex-1 bg-black dark:bg-white text-white dark:text-black text-xs font-medium py-2 px-3 rounded-lg hover:opacity-80 transition-opacity"
+              disabled={showManualInstall}
+              className={`flex-1 text-xs font-medium py-2 px-3 rounded-lg transition-opacity ${
+                showManualInstall 
+                  ? 'bg-neutral-300 dark:bg-neutral-600 text-neutral-500 dark:text-neutral-400 cursor-not-allowed' 
+                  : 'bg-black dark:bg-white text-white dark:text-black hover:opacity-80'
+              }`}
             >
-              Instalar
+              {showManualInstall ? 'Usa el menú de Chrome' : 'Instalar'}
             </button>
             <button
               onClick={handleDismiss}

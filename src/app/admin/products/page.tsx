@@ -5,6 +5,7 @@ import { useProducts } from '@/context/ProductsContext';
 import { Product } from '@/types';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
+type FilterCategory = Category | 'all';
 
 interface FormData {
   name: string;
@@ -15,10 +16,27 @@ interface FormData {
   image: string;
 }
 
+const categoryLabels: Record<FilterCategory, string> = {
+  all: 'Todos',
+  yogurt: 'Yogurts',
+  queso: 'Quesos',
+  mantequilla: 'Mantequilla',
+  manjar: 'Manjar',
+};
+
+const categoryIcons: Record<FilterCategory, string> = {
+  all: '📦',
+  yogurt: '🥛',
+  queso: '🧀',
+  mantequilla: '🧈',
+  manjar: '🍯',
+};
+
 export default function ProductsPage() {
   const { products, addProduct, updateProduct, deleteProduct } = useProducts();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [activeCategory, setActiveCategory] = useState<FilterCategory>('all');
   const [formData, setFormData] = useState<FormData>({
     name: '',
     description: '',
@@ -27,6 +45,10 @@ export default function ProductsPage() {
     category: 'yogurt',
     image: '',
   });
+
+  const filteredProducts = activeCategory === 'all' 
+    ? products 
+    : products.filter(p => p.category === activeCategory);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,26 +109,62 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-black dark:text-white">Productos</h1>
           <p className="text-neutral-600 dark:text-neutral-400 mt-1">
-            Gestiona tus productos disponibles
+            Gestiona tus productos por categoría
           </p>
         </div>
         <button
           onClick={() => openModal()}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg 
-                     flex items-center gap-2 transition-colors"
+                     flex items-center gap-2 transition-colors self-start md:self-auto"
         >
           <span>+</span>
           <span>Nuevo Producto</span>
         </button>
       </div>
 
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2 border-b border-neutral-200 dark:border-neutral-700 pb-4">
+        {(['all', 'yogurt', 'queso', 'mantequilla', 'manjar'] as FilterCategory[]).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
+              ${activeCategory === cat 
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800' 
+                : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
+              }`}
+          >
+            <span>{categoryIcons[cat]}</span>
+            <span>{categoryLabels[cat]}</span>
+            <span className={`ml-1 px-2 py-0.5 rounded-full text-xs
+              ${activeCategory === cat
+                ? 'bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200'
+                : 'bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400'
+              }`}>
+              {cat === 'all' ? products.length : products.filter(p => p.category === cat).length}
+            </span>
+          </button>
+        ))}
+      </div>
+
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
+        {filteredProducts.length === 0 ? (
+          <div className="col-span-full text-center py-12 text-neutral-500 dark:text-neutral-400">
+            <p className="text-4xl mb-2">{categoryIcons[activeCategory]}</p>
+            <p>No hay productos en esta categoría</p>
+            <button
+              onClick={() => openModal()}
+              className="mt-4 text-green-600 dark:text-green-400 hover:underline"
+            >
+              + Agregar el primer producto
+            </button>
+          </div>
+        ) : filteredProducts.map((product) => (
           <div
             key={product.id}
             className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 

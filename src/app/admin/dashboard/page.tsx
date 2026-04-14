@@ -458,11 +458,11 @@ function ProductsView() {
                 <div>
                   <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">Categoría</label>
                   <select value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value as Category })}
-                    className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 bg-transparent text-black dark:text-white text-base font-light focus:outline-none focus:border-black dark:focus:border-white transition-colors cursor-pointer">
-                    <option value="yogurt">Yogurt</option>
-                    <option value="queso">Queso</option>
-                    <option value="mantequilla">Mantequilla</option>
-                    <option value="manjar">Manjar</option>
+                    className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 bg-transparent text-black dark:text-white text-base font-light focus:outline-none focus:border-black dark:focus:border-white transition-colors cursor-pointer dark:bg-black">
+                    <option value="yogurt" className="dark:bg-black dark:text-white">Yogurt</option>
+                    <option value="queso" className="dark:bg-black dark:text-white">Queso</option>
+                    <option value="mantequilla" className="dark:bg-black dark:text-white">Mantequilla</option>
+                    <option value="manjar" className="dark:bg-black dark:text-white">Manjar</option>
                   </select>
                 </div>
                 <div>

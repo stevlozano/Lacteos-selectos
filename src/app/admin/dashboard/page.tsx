@@ -14,16 +14,29 @@ type FilterCategory = Category | 'all';
 type View = 'dashboard' | 'products' | 'orders';
 
 export default function AdminPage() {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, loading: authLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Solo redirigir si no está cargando y no está autenticado
+    if (!authLoading && !isAuthenticated) {
       router.push('/admin/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, authLoading, router]);
+
+  // Mostrar loading mientras auth está cargando
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black">
+        <div className="relative">
+          <div className="w-12 h-12 border-2 border-neutral-200 dark:border-neutral-800 rounded-full"></div>
+          <div className="absolute top-0 left-0 w-12 h-12 border-2 border-black dark:border-white rounded-full border-t-transparent animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return null;

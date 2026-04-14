@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { Product } from '@/types';
 import { products as initialProducts } from '@/data/products';
 
@@ -22,21 +22,25 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : initialProducts;
   });
+  const isUpdatingRef = useRef(false);
 
   // Persist to localStorage whenever products change
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (isUpdatingRef.current) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-    // Dispatch custom event for cross-tab sync
-    window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }));
   }, [products]);
 
   // Listen for changes from other tabs
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
+          isUpdatingRef.current = true;
           setProducts(JSON.parse(saved));
+          setTimeout(() => { isUpdatingRef.current = false; }, 0);
         }
       }
     };

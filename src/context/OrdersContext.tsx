@@ -111,6 +111,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => {
+    console.log('Adding order:', orderData);
+    
     const newOrder = {
       id: `order-${Date.now()}`,
       items: orderData.items,
@@ -124,11 +126,15 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
     };
     
-    const { error } = await supabase.from('orders').insert(newOrder);
+    console.log('Inserting to Supabase:', newOrder);
+    
+    const { data, error } = await supabase.from('orders').insert(newOrder).select();
     if (error) {
-      console.error('Error adding order:', error);
+      console.error('Error adding order to Supabase:', error);
       throw error;
     }
+    
+    console.log('Order inserted successfully:', data);
     // Real-time subscription will update the state
   };
 

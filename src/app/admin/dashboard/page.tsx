@@ -53,7 +53,7 @@ export default function AdminPage() {
       </div>
 
       {/* Sidebar - Desktop & Mobile */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white dark:bg-black border-r border-neutral-100 dark:border-neutral-900 transform transition-transform duration-300 lg:transform-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 z-40 w-72 bg-white dark:bg-black border-r border-neutral-100 dark:border-neutral-900 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="h-full flex flex-col">
           {/* Close button for mobile */}
           <div className="lg:hidden p-4 flex justify-end">

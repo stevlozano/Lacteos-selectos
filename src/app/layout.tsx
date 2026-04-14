@@ -37,7 +37,7 @@ export default function RootLayout({
     >
       <head>
         <MaterialSymbols />
-        <link rel="icon" type="image/png" href="/logo.png" />
+        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
         <link rel="apple-touch-icon" href="/logo.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />

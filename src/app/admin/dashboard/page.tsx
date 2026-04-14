@@ -69,34 +69,9 @@ export default function AdminPage() {
         </nav>
 
         <div className="p-6 border-t border-neutral-100 dark:border-neutral-900">
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center gap-4 px-6 py-4 rounded-full text-neutral-400 
-                       hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
-          >
-            <span className="material-symbols-outlined text-xl">
-              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-            </span>
-            <span className="text-sm font-light tracking-wide">
-              {theme === 'dark' ? 'Claro' : 'Oscuro'}
-            </span>
-          </button>
-          
-          <button
-            onClick={() => {
-              logout();
-              router.push('/admin/login');
-            }}
-            className="w-full flex items-center gap-4 px-6 py-4 mt-2 rounded-full text-neutral-400 
-                       hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
-          >
-            <span className="material-symbols-outlined text-xl">logout</span>
-            <span className="text-sm font-light tracking-wide">Salir</span>
-          </button>
-
           <Link
             href="/"
-            className="w-full flex items-center gap-4 px-6 py-4 mt-2 rounded-full text-neutral-400 
+            className="w-full flex items-center gap-4 px-6 py-4 rounded-full text-neutral-400 
                        hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
           >
             <span className="material-symbols-outlined text-xl">storefront</span>
@@ -144,6 +119,9 @@ export default function AdminPage() {
 function DashboardView() {
   const { orders, getTotalSales, getTodayOrders } = useOrders();
   const { products } = useProducts();
+  const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
+  const router = useRouter();
 
   const stats = {
     totalProducts: products.length,
@@ -161,11 +139,35 @@ function DashboardView() {
 
   return (
     <div className="space-y-10">
-      <div>
-        <h1 className="text-3xl lg:text-4xl font-extralight tracking-tight text-black dark:text-white">Dashboard</h1>
-        <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-2 uppercase tracking-widest">
-          Resumen del negocio
-        </p>
+      {/* Header con título y botones de acción */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl lg:text-4xl font-extralight tracking-tight text-black dark:text-white">Dashboard</h1>
+          <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-2 uppercase tracking-widest">
+            Resumen del negocio
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleTheme}
+            className="p-3 rounded-full text-neutral-400 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors"
+            aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          >
+            <span className="material-symbols-outlined text-xl">
+              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
+          <button
+            onClick={() => {
+              logout();
+              router.push('/admin/login');
+            }}
+            className="p-3 rounded-full text-neutral-400 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors"
+            aria-label="Cerrar sesión"
+          >
+            <span className="material-symbols-outlined text-xl">logout</span>
+          </button>
+        </div>
       </div>
 
       {/* Stats Grid */}

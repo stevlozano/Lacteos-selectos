@@ -15,12 +15,12 @@ export default function AdminLogin() {
   const { login, register, isRegistrationOpen, hasRegisteredUsers } = useAuth();
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     
-    const success = login(email, password);
+    const success = await login(email, password);
     if (success) {
       router.push('/admin/dashboard');
     } else {
@@ -28,7 +28,7 @@ export default function AdminLogin() {
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -48,7 +48,7 @@ export default function AdminLogin() {
       return;
     }
 
-    const success = register(email, password);
+    const success = await register(email, password);
     if (success) {
       setSuccess('¡Registro exitoso! Ahora puedes iniciar sesión.');
       setActiveTab('login');

@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/lib/supabase';
 
 interface User {
   email: string;
@@ -9,86 +10,110 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => boolean;
-  register: (email: string, password: string) => boolean;
-  logout: () => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  register: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
   isRegistrationOpen: boolean;
   hasRegisteredUsers: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const ADMIN_CREDENTIALS_KEY = 'admin_credentials';
-const REGISTRATION_CLOSED_KEY = 'lacteos_registration_closed';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const saved = localStorage.getItem('auth_user');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    // Si hay un usuario guardado, el registro está cerrado
-    const savedUser = localStorage.getItem('auth_user');
-    if (savedUser) return false;
-    const closed = localStorage.getItem(REGISTRATION_CLOSED_KEY);
-    return closed !== 'true';
-  });
-
-  const login = (email: string, password: string): boolean => {
-    // Verificar contra credenciales guardadas en localStorage
-    const savedCredentials = localStorage.getItem(ADMIN_CREDENTIALS_KEY);
-    if (savedCredentials) {
-      const credentials = JSON.parse(savedCredentials);
-      if (email === credentials.email && password === credentials.password) {
-        const user = { email, isAdmin: true };
-        setUser(user);
-        localStorage.setItem('auth_user', JSON.stringify(user));
-        return true;
+  // Check if admin is already registered and check session
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      // Check for existing session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser({ email: session.user.email!, isAdmin: true });
       }
-    }
-    
-    // Fallback: credenciales demo (para primera vez)
-    if (email === 'admin@lacteos.com' && password === 'admin123') {
-      // Guardar estas credenciales automáticamente
-      localStorage.setItem(ADMIN_CREDENTIALS_KEY, JSON.stringify({ email, password }));
-      const user = { email, isAdmin: true };
-      setUser(user);
-      localStorage.setItem('auth_user', JSON.stringify(user));
-      localStorage.setItem(REGISTRATION_CLOSED_KEY, 'true');
-      setIsRegistrationOpen(false);
-      return true;
-    }
-    
-    return false;
-  };
 
-  const register = (email: string, password: string): boolean => {
-    // Verificar si el registro está cerrado
-    if (!isRegistrationOpen) {
+      // Check if admin is already registered globally
+      const { data: config } = await supabase
+        .from('admin_config')
+        .select('is_registered')
+        .eq('id', 1)
+        .single();
+      
+      if (config?.is_registered) {
+        setIsRegistrationOpen(false);
+      }
+      
+      setLoading(false);
+    };
+
+    checkAdminStatus();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser({ email: session.user.email!, isAdmin: true });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
       return false;
     }
-    
-    // Guardar credenciales en localStorage
-    localStorage.setItem(ADMIN_CREDENTIALS_KEY, JSON.stringify({ email, password }));
-    const user = { email, isAdmin: true };
-    setUser(user);
-    localStorage.setItem('auth_user', JSON.stringify(user));
-    
-    // Cerrar el registro - solo una persona puede registrarse
-    localStorage.setItem(REGISTRATION_CLOSED_KEY, 'true');
-    setIsRegistrationOpen(false);
-    
+
+    setUser({ email: data.user.email!, isAdmin: true });
     return true;
   };
 
-  const logout = () => {
+  const register = async (email: string, password: string): Promise<boolean> => {
+    // Check if registration is closed globally
+    const { data: config } = await supabase
+      .from('admin_config')
+      .select('is_registered')
+      .eq('id', 1)
+      .single();
+
+    if (config?.is_registered) {
+      return false;
+    }
+
+    // Sign up with Supabase Auth
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error || !data.user) {
+      console.error('Registration error:', error);
+      return false;
+    }
+
+    // Mark as registered globally
+    await supabase
+      .from('admin_config')
+      .update({ is_registered: true, admin_email: email })
+      .eq('id', 1);
+
+    setUser({ email: data.user.email!, isAdmin: true });
+    setIsRegistrationOpen(false);
+    return true;
+  };
+
+  const logout = async (): Promise<void> => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('auth_user');
-    // Nota: No reabrimos el registro al cerrar sesión, permanece cerrado
   };
 
   return (
@@ -99,7 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logout, 
       isAuthenticated: !!user,
       isRegistrationOpen,
-      hasRegisteredUsers: !isRegistrationOpen
+      hasRegisteredUsers: !isRegistrationOpen,
+      loading
     }}>
       {children}
     </AuthContext.Provider>

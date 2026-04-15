@@ -8,6 +8,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useOrders } from '@/context/OrdersContext';
 import { useProducts } from '@/context/ProductsContext';
 import { Product } from '@/types';
+import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon } from '@/components/Icons';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 type FilterCategory = Category | 'all';
@@ -75,7 +76,9 @@ export default function AdminPage() {
                   : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
                 }`}
             >
-              <span className="material-symbols-outlined text-xl">{item.icon}</span>
+              {item.icon === 'space_dashboard' && <DashboardIcon size={20} className="opacity-70" />}
+              {item.icon === 'inventory_2' && <InventoryIcon size={20} className="opacity-70" />}
+              {item.icon === 'receipt_long' && <ReceiptIcon size={20} className="opacity-70" />}
               <span className="text-sm font-light tracking-wide">{item.label}</span>
             </button>
           ))}
@@ -87,7 +90,7 @@ export default function AdminPage() {
             className="w-full flex items-center gap-4 px-6 py-4 rounded-full text-neutral-400 
                        hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all"
           >
-            <span className="material-symbols-outlined text-xl">storefront</span>
+            <StoreIcon size={20} className="opacity-70" />
             <span className="text-sm font-light tracking-wide">Tienda</span>
           </Link>
         </div>
@@ -113,9 +116,9 @@ export default function AdminPage() {
                   : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
                 }`}
             >
-              <span className={`material-symbols-outlined text-2xl ${currentView === item.id ? 'fill' : ''}`}>
-                {item.icon}
-              </span>
+              {item.icon === 'space_dashboard' && <DashboardIcon size={24} />}
+              {item.icon === 'inventory_2' && <InventoryIcon size={24} />}
+              {item.icon === 'receipt_long' && <ReceiptIcon size={24} />}
               <span className="text-[10px] font-light tracking-wide mt-1">{item.label}</span>
               {currentView === item.id && (
                 <span className="absolute bottom-0 w-12 h-0.5 bg-black dark:bg-white rounded-t-full" />
@@ -166,9 +169,7 @@ function DashboardView() {
             className="p-3 rounded-full text-neutral-400 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors"
             aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
           >
-            <span className="material-symbols-outlined text-xl">
-              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-            </span>
+            {theme === 'dark' ? <SunIcon size={20} /> : <MoonIcon size={20} />}
           </button>
           <button
             onClick={() => {
@@ -178,7 +179,7 @@ function DashboardView() {
             className="p-3 rounded-full text-neutral-400 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors"
             aria-label="Cerrar sesión"
           >
-            <span className="material-symbols-outlined text-xl">logout</span>
+            <LogoutIcon size={20} />
           </button>
         </div>
       </div>
@@ -199,7 +200,7 @@ function DashboardView() {
         
         {recentOrders.length === 0 ? (
           <div className="py-12 text-center border border-neutral-100 dark:border-neutral-900">
-            <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-neutral-700 mb-4">inbox</span>
+            <InboxIcon size={40} className="text-neutral-300 dark:text-neutral-700 mb-4" />
             <p className="text-sm font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
               No hay pedidos aún
             </p>
@@ -213,7 +214,7 @@ function DashboardView() {
               >
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-neutral-400">person</span>
+                    <PersonIcon size={20} className="text-neutral-400" />
                   </div>
                   <div>
                     <p className="font-light text-black dark:text-white">{order.customerName}</p>
@@ -334,7 +335,7 @@ function ProductsView() {
                      font-light tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200
                      transition-colors self-start lg:self-auto flex items-center gap-2"
         >
-          <span className="material-symbols-outlined">add</span>
+          <AddIcon size={20} />
           <span>Nuevo</span>
         </button>
       </div>
@@ -351,7 +352,11 @@ function ProductsView() {
                 : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
               }`}
           >
-            <span className="material-symbols-outlined text-base">{categoryIcons[cat]}</span>
+            {cat === 'all' && <InventoryIcon size={16} />}
+            {cat === 'yogurt' && <DrinkIcon size={16} />}
+            {cat === 'queso' && <KitchenIcon size={16} />}
+            {cat === 'mantequilla' && <EggIcon size={16} />}
+            {cat === 'manjar' && <CookieIcon size={16} />}
             <span className="hidden sm:inline">{categoryLabels[cat]}</span>
             <span className={`ml-1 lg:ml-2 text-xs ${activeCategory === cat ? 'opacity-70' : 'text-neutral-300 dark:text-neutral-600'}`}>
               {cat === 'all' ? products.length : products.filter(p => p.category === cat).length}
@@ -364,7 +369,7 @@ function ProductsView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {filteredProducts.length === 0 ? (
           <div className="col-span-full py-16 text-center border border-neutral-100 dark:border-neutral-900">
-            <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-neutral-700 mb-4">inventory_2</span>
+            <InventoryIcon size={40} className="text-neutral-300 dark:text-neutral-700 mb-4" />
             <p className="text-sm font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
               No hay productos
             </p>
@@ -415,14 +420,14 @@ function ProductsView() {
                   onClick={() => openModal(product)}
                   className="flex-1 py-2 text-xs font-light text-neutral-500 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors uppercase tracking-wider"
                 >
-                  <span className="material-symbols-outlined text-sm mr-1 align-text-bottom">edit</span>
+                  <EditIcon size={16} className="mr-1" />
                   Editar
                 </button>
                 <button
                   onClick={() => { if (confirm('¿Eliminar este producto?')) deleteProduct(product.id); }}
                   className="flex-1 py-2 text-xs font-light text-neutral-400 hover:text-red-600 dark:text-neutral-600 dark:hover:text-red-400 transition-colors uppercase tracking-wider"
                 >
-                  <span className="material-symbols-outlined text-sm mr-1 align-text-bottom">delete</span>
+                  <DeleteIcon size={16} className="mr-1" />
                   Eliminar
                 </button>
               </div>
@@ -441,7 +446,7 @@ function ProductsView() {
                   {editingProduct ? 'Editar' : 'Nuevo'}
                 </h2>
                 <button onClick={closeModal} className="p-2 text-neutral-400 hover:text-black dark:hover:text-white">
-                  <span className="material-symbols-outlined">close</span>
+                  <CloseIcon size={20} />
                 </button>
               </div>
               
@@ -566,7 +571,10 @@ function OrdersView() {
                 : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
               }`}
           >
-            <span className="material-symbols-outlined text-base">{filterIcons[f]}</span>
+            {f === 'all' && <ReceiptIcon size={16} />}
+            {f === 'pending' && <PendingActionsIcon size={16} />}
+            {f === 'completed' && <CheckCircleIcon size={16} />}
+            {f === 'cancelled' && <CancelIcon size={16} />}
             <span className="hidden sm:inline">{filterLabels[f]}</span>
             <span className={`ml-1 lg:ml-2 text-xs ${filter === f ? 'opacity-70' : 'text-neutral-300 dark:text-neutral-600'}`}>
               {f === 'all' ? orders.length : orders.filter(o => o.status === f).length}
@@ -579,7 +587,7 @@ function OrdersView() {
       <div>
         {filteredOrders.length === 0 ? (
           <div className="py-16 text-center border border-neutral-100 dark:border-neutral-900">
-            <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-neutral-700 mb-4">inbox</span>
+            <InboxIcon size={40} className="text-neutral-300 dark:text-neutral-700 mb-4" />
             <p className="text-sm font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
               No hay pedidos {filter !== 'all' && 'con este filtro'}
             </p>
@@ -594,7 +602,7 @@ function OrdersView() {
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                   <div className="flex items-start gap-3 lg:gap-4">
                     <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined text-neutral-400">person</span>
+                      <PersonIcon size={20} className="text-neutral-400" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-light text-black dark:text-white truncate">{order.customerName}</p>
@@ -636,14 +644,14 @@ function OrdersView() {
                         onClick={() => updateOrderStatus(order.id, 'completed')}
                         className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-500 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
                       >
-                        <span className="material-symbols-outlined text-sm">check</span>
+                        <CheckIcon size={16} />
                         Completar
                       </button>
                       <button
                         onClick={() => updateOrderStatus(order.id, 'cancelled')}
                         className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-400 hover:text-red-600 dark:text-neutral-600 dark:hover:text-red-400 transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
                       >
-                        <span className="material-symbols-outlined text-sm">close</span>
+                        <CloseIcon size={16} />
                         Cancelar
                       </button>
                     </>
@@ -653,7 +661,7 @@ function OrdersView() {
                       onClick={() => updateOrderStatus(order.id, 'pending')}
                       className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-400 hover:text-black dark:text-neutral-600 dark:hover:text-white transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
                     >
-                      <span className="material-symbols-outlined text-sm">refresh</span>
+                      <RefreshIcon size={16} />
                       Marcar Pendiente
                     </button>
                   )}
@@ -661,7 +669,7 @@ function OrdersView() {
                     onClick={() => { if (confirm('¿Eliminar este pedido?')) deleteOrder(order.id); }}
                     className="py-2 px-4 text-neutral-400 hover:text-red-600 dark:text-neutral-600 dark:hover:text-red-400 transition-colors"
                   >
-                    <span className="material-symbols-outlined text-sm">delete</span>
+                    <DeleteIcon size={16} />
                   </button>
                 </div>
               </div>
@@ -677,7 +685,10 @@ function OrdersView() {
 function StatCard({ title, value, subtitle, icon }: { title: string; value: string | number; subtitle: string; icon: string }) {
   return (
     <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6">
-      <span className="material-symbols-outlined text-xl text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3">{icon}</span>
+      {icon === 'inventory_2' && <InventoryIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
+      {icon === 'today' && <TodayIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
+      {icon === 'payments' && <PaymentsIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
+      {icon === 'pending_actions' && <PendingActionsIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
       <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-1">{title}</p>
       <p className="text-xl lg:text-3xl font-extralight text-black dark:text-white mt-1 lg:mt-2">{value}</p>
       <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-1 lg:mt-2">{subtitle}</p>
@@ -688,7 +699,10 @@ function StatCard({ title, value, subtitle, icon }: { title: string; value: stri
 function StatBox({ label, value, icon }: { label: string; value: number; icon: string }) {
   return (
     <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6">
-      <span className="material-symbols-outlined text-xl text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3">{icon}</span>
+      {icon === 'receipt_long' && <ReceiptIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
+      {icon === 'pending_actions' && <PendingActionsIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
+      {icon === 'check_circle' && <CheckCircleIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
+      {icon === 'cancel' && <CancelIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
       <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-xl lg:text-2xl font-extralight text-black dark:text-white mt-1 lg:mt-2">{value}</p>
     </div>

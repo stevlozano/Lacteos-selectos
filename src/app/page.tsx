@@ -57,14 +57,26 @@ export default function LandingPage() {
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-900">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="text-lg font-light tracking-tight">
+          <Link href="/" className="text-lg font-light tracking-tight hover:opacity-70 transition-opacity">
             Lácteos Selectos
-          </span>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
-            aria-label="Toggle theme"
-          >
+          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/admin/login"
+              className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+              aria-label="Admin"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="M12 8v4" />
+                <path d="M12 16h.01" />
+              </svg>
+            </Link>
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-900 transition-colors"
+              aria-label="Toggle theme"
+            >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="20"

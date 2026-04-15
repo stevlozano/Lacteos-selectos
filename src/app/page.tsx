@@ -174,7 +174,7 @@ export default function LandingPage() {
                 </Link>
 
                 <a
-                  href="https://wa.me/1234567890"
+                  href="https://wa.me/51932398293"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group inline-flex items-center justify-center gap-2 px-8 py-4 border border-neutral-200 dark:border-neutral-800 rounded-full font-light text-sm tracking-wide hover:border-neutral-400 dark:hover:border-neutral-600 transition-all duration-300"
@@ -450,7 +450,7 @@ export default function LandingPage() {
               Explorar productos
             </Link>
             <a
-              href="https://wa.me/1234567890"
+              href="https://wa.me/51932398293"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-neutral-200 dark:border-neutral-800 rounded-full font-light text-sm tracking-wide hover:border-neutral-400 dark:hover:border-neutral-600 transition-all duration-300"
@@ -484,7 +484,7 @@ export default function LandingPage() {
             <div>
               <h4 className="text-sm font-normal mb-4">Contacto</h4>
               <ul className="space-y-2 text-sm font-light text-neutral-500 dark:text-neutral-400">
-                <li>WhatsApp: +51 123 456 789</li>
+                <li>WhatsApp: +51 932 398 293</li>
                 <li>Email: hola@lacteosselectos.com</li>
                 <li>Lunes a Sábado: 6am - 6pm</li>
               </ul>
@@ -527,7 +527,7 @@ export default function LandingPage() {
                 Tienda
               </Link>
               <a
-                href="https://wa.me/1234567890"
+                href="https://wa.me/51932398293"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"

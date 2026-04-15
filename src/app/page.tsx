@@ -22,6 +22,7 @@ export default function Home() {
     ? products.filter(p => p.category === activeCategory)
     : products;
 
+  // Prevent hydration mismatch by not rendering products until mounted
   const displayProducts = mounted ? filteredProducts : [];
 
   return (

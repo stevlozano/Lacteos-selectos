@@ -64,7 +64,7 @@ export default function TiendaPage() {
                 href="/admin/login"
                 className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
               >
-                <span className="material-symbols text-lg">admin_panel_settings</span>
+                Admin
               </Link>
               <button
                 onClick={toggleTheme}

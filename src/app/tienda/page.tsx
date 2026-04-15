@@ -18,7 +18,7 @@ const categories: { id: Category | 'all'; label: string }[] = [
   { id: 'manjar', label: 'Manjar' },
 ];
 
-export default function Home() {
+export default function TiendaPage() {
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const [mounted, setMounted] = useState(false);
   const { products } = useProducts();
@@ -41,31 +41,28 @@ export default function Home() {
       <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <span className="text-xl font-light tracking-tight text-black dark:text-white">
                 Lácteos Selectos
               </span>
             </Link>
 
-            {/* Navigation */}
             <div className="flex items-center gap-6">
               <Link 
                 href="/" 
-                className="text-sm font-light text-black dark:text-white hover:opacity-60 transition-opacity"
+                className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
               >
                 Inicio
               </Link>
               <Link 
                 href="/tienda" 
-                className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+                className="text-sm font-light text-black dark:text-white"
               >
                 Tienda
               </Link>
               <button
                 onClick={toggleTheme}
                 className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
-                aria-label="Toggle theme"
               >
                 <span className="material-symbols text-lg">
                   {theme === 'dark' ? 'light_mode' : 'dark_mode'}
@@ -76,22 +73,22 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section Minimalista */}
-      <section className="pt-32 pb-16 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extralight tracking-tight text-black dark:text-white mb-4">
-            Productos frescos
+      {/* Header */}
+      <section className="pt-28 pb-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-3xl sm:text-4xl font-extralight tracking-tight text-black dark:text-white">
+            Hacer pedido
           </h1>
-          <p className="text-lg font-light text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
-            Directo de nuestra finca a tu puerta
+          <p className="text-sm font-light text-neutral-500 dark:text-neutral-400 mt-2">
+            Selecciona los productos que deseas ordenar
           </p>
         </div>
       </section>
 
-      {/* Products Section */}
+      {/* Products */}
       <main className="max-w-6xl mx-auto px-4 pb-24">
         {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
+        <div className="flex flex-wrap gap-2 mb-8">
           {categories.map(cat => (
             <button
               key={cat.id}
@@ -108,7 +105,7 @@ export default function Home() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {displayProducts.map(product => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -130,47 +127,18 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer Minimalista */}
-      <footer className="border-t border-neutral-100 dark:border-neutral-900 py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Brand */}
-            <div className="text-center md:text-left">
-              <p className="text-lg font-light text-black dark:text-white">Lácteos Selectos</p>
-              <p className="text-sm font-light text-neutral-400 dark:text-neutral-600 mt-1">
-                Pedidos de productos frescos directo a tu puerta
-              </p>
-            </div>
-
-            {/* Links */}
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
-                Inicio
-              </Link>
-              <Link href="/tienda" className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
-                Tienda
-              </Link>
-              <a 
-                href="https://wa.me/51932398293" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Contacto
-              </a>
-            </div>
-
-            {/* Copyright */}
-            <p className="text-xs font-light text-neutral-300 dark:text-neutral-700">
-              © {new Date().getFullYear()} Lácteos Selectos
-            </p>
-          </div>
+      {/* Footer */}
+      <footer className="border-t border-neutral-100 dark:border-neutral-900 py-8 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-xs font-light text-neutral-300 dark:text-neutral-700">
+            © {new Date().getFullYear()} Lácteos Selectos
+          </p>
         </div>
       </footer>
 
       <MobileCart />
       
-      {/* Desktop Cart - Hidden on mobile */}
+      {/* Desktop Cart */}
       <div className="hidden lg:block fixed bottom-6 right-6 z-30">
         <Cart />
       </div>

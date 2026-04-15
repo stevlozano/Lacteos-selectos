@@ -685,13 +685,13 @@ function OrdersView() {
 function StatCard({ title, value, subtitle, icon }: { title: string; value: string | number; subtitle: string; icon: string }) {
   return (
     <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6">
-      {icon === 'inventory_2' && <InventoryIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      {icon === 'today' && <TodayIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      {icon === 'payments' && <PaymentsIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      {icon === 'pending_actions' && <PendingActionsIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-1">{title}</p>
+      {icon === 'inventory_2' && <InventoryIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      {icon === 'today' && <TodayIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      {icon === 'payments' && <PaymentsIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      {icon === 'pending_actions' && <PendingActionsIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      <p className="text-xs font-light text-neutral-600 dark:text-neutral-400 uppercase tracking-widest mb-1">{title}</p>
       <p className="text-xl lg:text-3xl font-extralight text-black dark:text-white mt-1 lg:mt-2">{value}</p>
-      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-1 lg:mt-2">{subtitle}</p>
+      <p className="text-xs font-light text-neutral-600 dark:text-neutral-400 mt-1 lg:mt-2">{subtitle}</p>
     </div>
   );
 }
@@ -699,11 +699,11 @@ function StatCard({ title, value, subtitle, icon }: { title: string; value: stri
 function StatBox({ label, value, icon }: { label: string; value: number; icon: string }) {
   return (
     <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6">
-      {icon === 'receipt_long' && <ReceiptIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      {icon === 'pending_actions' && <PendingActionsIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      {icon === 'check_circle' && <CheckCircleIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      {icon === 'cancel' && <CancelIcon size={20} className="text-neutral-300 dark:text-neutral-700 mb-2 lg:mb-3" />}
-      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-1">{label}</p>
+      {icon === 'receipt_long' && <ReceiptIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      {icon === 'pending_actions' && <PendingActionsIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      {icon === 'check_circle' && <CheckCircleIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      {icon === 'cancel' && <CancelIcon size={20} className="text-neutral-500 dark:text-neutral-400 mb-2 lg:mb-3" />}
+      <p className="text-xs font-light text-neutral-600 dark:text-neutral-400 uppercase tracking-widest mb-1">{label}</p>
       <p className="text-xl lg:text-2xl font-extralight text-black dark:text-white mt-1 lg:mt-2">{value}</p>
     </div>
   );

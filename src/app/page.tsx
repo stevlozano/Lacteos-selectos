@@ -1,179 +1,69 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { Header } from '@/components/Header';
+import { CategoryFilter } from '@/components/CategoryFilter';
 import { ProductCard } from '@/components/ProductCard';
 import { Cart } from '@/components/Cart';
 import { MobileCart } from '@/components/MobileCart';
 import { useProducts } from '@/context/ProductsContext';
-import { useTheme } from '@/context/ThemeContext';
-
-type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
-
-const categories: { id: Category | 'all'; label: string }[] = [
-  { id: 'all', label: 'Todos' },
-  { id: 'yogurt', label: 'Yogurts' },
-  { id: 'queso', label: 'Quesos' },
-  { id: 'mantequilla', label: 'Mantequilla' },
-  { id: 'manjar', label: 'Manjar' },
-];
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const { products } = useProducts();
-  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
 
-  const filteredProducts = activeCategory === 'all'
-    ? products
-    : products.filter(p => p.category === activeCategory);
+  const filteredProducts = activeCategory
+    ? products.filter(p => p.category === activeCategory)
+    : products;
 
   const displayProducts = mounted ? filteredProducts : [];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors">
-      {/* Navbar Minimalista */}
-      <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-900">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-light tracking-tight text-black dark:text-white">
-                Lácteos Selectos
-              </span>
-            </Link>
-
-            {/* Navigation */}
-            <div className="flex items-center gap-6">
-              <Link 
-                href="/" 
-                className="text-sm font-light text-black dark:text-white hover:opacity-60 transition-opacity"
-              >
-                Inicio
-              </Link>
-              <Link 
-                href="/tienda" 
-                className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Tienda
-              </Link>
-              <button
-                onClick={toggleTheme}
-                className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
-                aria-label="Toggle theme"
-              >
-                <span className="material-symbols text-lg">
-                  {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-                </span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section Minimalista */}
-      <section className="pt-32 pb-16 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extralight tracking-tight text-black dark:text-white mb-4">
-            Productos frescos
-          </h1>
-          <p className="text-lg font-light text-neutral-500 dark:text-neutral-400 max-w-md mx-auto">
-            Directo de nuestra finca a tu puerta
-          </p>
-        </div>
-      </section>
-
-      {/* Products Section */}
-      <main className="max-w-6xl mx-auto px-4 pb-24">
-        {/* Category Filter */}
-        <div className="flex flex-wrap justify-center gap-2 mb-12">
-          {categories.map(cat => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 py-2 text-sm font-light rounded-full transition-all ${
-                activeCategory === cat.id
-                  ? 'bg-black dark:bg-white text-white dark:text-black'
-                  : 'bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Products Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {displayProducts.map(product => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        {!mounted && (
-          <div className="py-12 text-center">
-            <div className="relative inline-block">
-              <div className="w-8 h-8 border-2 border-neutral-200 dark:border-neutral-800 rounded-full"></div>
-              <div className="absolute top-0 left-0 w-8 h-8 border-2 border-black dark:border-white rounded-full border-t-transparent animate-spin"></div>
-            </div>
-          </div>
-        )}
-
-        {mounted && displayProducts.length === 0 && (
-          <p className="text-center text-neutral-400 dark:text-neutral-600 py-12 font-light">
-            No hay productos disponibles
-          </p>
-        )}
-      </main>
-
-      {/* Footer Minimalista */}
-      <footer className="border-t border-neutral-100 dark:border-neutral-900 py-12 px-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Brand */}
-            <div className="text-center md:text-left">
-              <p className="text-lg font-light text-black dark:text-white">Lácteos Selectos</p>
-              <p className="text-sm font-light text-neutral-400 dark:text-neutral-600 mt-1">
-                Pedidos de productos frescos directo a tu puerta
-              </p>
-            </div>
-
-            {/* Links */}
-            <div className="flex items-center gap-6">
-              <Link href="/" className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
-                Inicio
-              </Link>
-              <Link href="/tienda" className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors">
-                Tienda
-              </Link>
-              <a 
-                href="https://wa.me/51932398293" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Contacto
-              </a>
-            </div>
-
-            {/* Copyright */}
-            <p className="text-xs font-light text-neutral-300 dark:text-neutral-700">
-              © {new Date().getFullYear()} Lácteos Selectos
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      <MobileCart />
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 transition-colors">
+      <Header />
       
-      {/* Desktop Cart - Hidden on mobile */}
-      <div className="hidden lg:block fixed bottom-6 right-6 z-30">
-        <Cart />
-      </div>
+      <main className="mx-auto max-w-6xl px-4 py-8">
+        <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+          <div>
+            <div className="mb-6">
+              <CategoryFilter 
+                activeCategory={activeCategory}
+                onCategoryChange={setActiveCategory}
+              />
+            </div>
+            
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {displayProducts.map(product => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+            
+            {!mounted && (
+              <div className="py-12 text-center">
+                <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-neutral-700 animate-pulse">inventory_2</span>
+              </div>
+            )}
+            
+            {mounted && displayProducts.length === 0 && (
+              <p className="text-center text-neutral-500 dark:text-neutral-400 py-12">
+                No hay productos en esta categoría
+              </p>
+            )}
+          </div>
+          
+          <aside className="hidden lg:block lg:sticky lg:top-8 lg:self-start">
+            <Cart />
+          </aside>
+        </div>
+      </main>
+      
+      <MobileCart />
     </div>
   );
 }

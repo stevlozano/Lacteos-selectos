@@ -1,55 +1,151 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `lacteos-selectos-${CACHE_VERSION}`;
-const urlsToCache = [
+const STATIC_CACHE_NAME = `${CACHE_NAME}-static`;
+const DYNAMIC_CACHE_NAME = `${CACHE_NAME}-dynamic`;
+
+// Critical assets that must be cached for app shell
+const APP_SHELL_URLS = [
   '/',
+  '/tienda',
   '/admin/login',
   '/admin/dashboard'
 ];
 
-// Install event - cache assets and skip waiting
+// Static assets to cache on install
+const STATIC_ASSETS = [
+  '/manifest.json',
+  '/logo.svg',
+  '/logo.png',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/favicon.ico'
+];
+
+// Install event - cache critical assets
 self.addEventListener('install', (event) => {
+  console.log('[SW] Install event');
+  
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(urlsToCache))
+    Promise.all([
+      // Cache app shell
+      caches.open(CACHE_NAME).then((cache) => {
+        console.log('[SW] Caching app shell');
+        return cache.addAll(APP_SHELL_URLS).catch(err => {
+          console.warn('[SW] Some app shell URLs failed:', err);
+        });
+      }),
+      // Cache static assets
+      caches.open(STATIC_CACHE_NAME).then((cache) => {
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS).catch(err => {
+          console.warn('[SW] Some static assets failed:', err);
+        });
+      })
+    ]).then(() => {
+      console.log('[SW] Install complete');
+      self.skipWaiting();
+    })
   );
-  // Force activation
-  self.skipWaiting();
 });
 
 // Activate event - clean old caches and claim clients
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activate event');
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
+          .filter((name) => name !== CACHE_NAME && name !== STATIC_CACHE_NAME && name !== DYNAMIC_CACHE_NAME)
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
       );
-    }).then(() => self.clients.claim())
+    }).then(() => {
+      console.log('[SW] Claiming clients');
+      return self.clients.claim();
+    })
   );
 });
 
-// Fetch event - network first, then cache
+// Fetch event - cache strategies
 self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+  
   // Skip non-GET requests
-  if (event.request.method !== 'GET') return;
+  if (request.method !== 'GET') return;
   
-  // Skip API requests
-  if (event.request.url.includes('/api/')) return;
+  // Skip API requests and external resources
+  if (url.pathname.startsWith('/api/') || 
+      url.origin !== self.location.origin ||
+      request.url.includes('supabase') ||
+      request.url.includes('google')) {
+    return;
+  }
   
+  // For navigation requests (HTML pages) - Network first, cache fallback
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request).then((cached) => {
+            if (cached) return cached;
+            // Fallback to root if page not in cache
+            return caches.match('/');
+          });
+        })
+    );
+    return;
+  }
+  
+  // For static assets (JS, CSS, images) - Cache first, network fallback
+  if (request.destination === 'script' || 
+      request.destination === 'style' || 
+      request.destination === 'image' ||
+      request.destination === 'font') {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) {
+          // Return cached and update in background
+          fetch(request).then((response) => {
+            caches.open(STATIC_CACHE_NAME).then((cache) => {
+              cache.put(request, response.clone());
+            });
+          }).catch(() => {});
+          return cached;
+        }
+        
+        return fetch(request).then((response) => {
+          const responseClone = response.clone();
+          caches.open(STATIC_CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+          return response;
+        });
+      })
+    );
+    return;
+  }
+  
+  // Default: Network first with cache update
   event.respondWith(
-    fetch(event.request)
+    fetch(request)
       .then((response) => {
-        // Clone and cache the response
         const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
+        caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
+          cache.put(request, responseClone);
         });
         return response;
       })
-      .catch(() => {
-        // Fallback to cache if network fails
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(request))
   );
 });

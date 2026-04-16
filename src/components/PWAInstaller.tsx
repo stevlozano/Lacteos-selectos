@@ -9,36 +9,73 @@ interface BeforeInstallPromptEvent extends Event {
 
 function checkStandalone() {
   if (typeof window === 'undefined') return false;
-  return window.matchMedia('(display-mode: standalone)').matches;
+  // Check for iOS standalone or Android display-mode
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         (window.navigator as typeof window.navigator & { standalone?: boolean }).standalone === true;
+}
+
+function isAndroid() {
+  if (typeof window === 'undefined') return false;
+  return /Android/i.test(navigator.userAgent);
+}
+
+function isChrome() {
+  if (typeof window === 'undefined') return false;
+  return /Chrome/i.test(navigator.userAgent) && /Google Inc/i.test(navigator.vendor);
+}
+
+function isSamsungBrowser() {
+  if (typeof window === 'undefined') return false;
+  return /SamsungBrowser/i.test(navigator.userAgent);
 }
 
 export function PWAInstaller() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstall, setShowInstall] = useState(false);
-  const [isInstalled] = useState(() => checkStandalone());
+  const [isInstalled, setIsInstalled] = useState(() => checkStandalone());
+  
+  // Initialize device detection once on mount
+  const isAndroidDevice = typeof window !== 'undefined' ? isAndroid() : false;
+  const isChromeBrowser = typeof window !== 'undefined' ? isChrome() : false;
+  const isSamsung = typeof window !== 'undefined' ? isSamsungBrowser() : false;
 
   const handleBeforeInstallPrompt = useCallback((e: BeforeInstallPromptEvent) => {
+    console.log('[PWA] beforeinstallprompt event fired');
     e.preventDefault();
     setDeferredPrompt(e);
     setShowInstall(true);
   }, []);
 
   const handleAppInstalled = useCallback(() => {
+    console.log('[PWA] App installed');
     setShowInstall(false);
     setDeferredPrompt(null);
-    window.location.reload(); // Refresh to update standalone status
+    setIsInstalled(true);
+    window.location.reload();
   }, []);
 
   useEffect(() => {
-    // Register service worker
+    // Register service worker with update handling
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('Service Worker registered:', registration);
+          console.log('[PWA] Service Worker registered:', registration);
+          
+          // Check for updates
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('[PWA] New version available');
+                }
+              });
+            }
+          });
         })
         .catch((error) => {
-          console.error('Service Worker registration failed:', error);
+          console.error('[PWA] Service Worker registration failed:', error);
         });
     }
 
@@ -103,7 +140,11 @@ export function PWAInstaller() {
           </h3>
           <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
             {showManualInstall 
-              ? "Haz clic en el menú de Chrome (⋮) → 'Instalar Lácteos Selectos' o usa el botón de Chrome en la barra de direcciones."
+              ? isSamsung 
+                ? "Toque el menú ⋮ → 'Agregar página a' → 'Pantalla de inicio'"
+                : isAndroidDevice && !isChromeBrowser
+                  ? "Abre Chrome y toca ⋮ → 'Agregar a pantalla de inicio'"
+                  : "Haz clic en el menú de Chrome (⋮) → 'Instalar Lácteos Selectos' o usa el botón de Chrome en la barra de direcciones."
               : "Instala nuestra app para acceder más rápido y recibir notificaciones de tus pedidos."}
           </p>
           <div className="flex gap-2 mt-3">

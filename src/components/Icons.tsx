@@ -186,6 +186,23 @@ export const CalendarIcon = ({ size = 20, className = '' }: IconProps) => (
   </svg>
 );
 
+export const NotificationsIcon = ({ size = 20, className = '' }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+  </svg>
+);
+
+export const TruckIcon = ({ size = 20, className = '' }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M5 18H3a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3"/>
+    <path d="m14 18 2 2 4-4"/>
+    <path d="M5 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
+    <path d="M5 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
+    <path d="M19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/>
+    <path d="M15 18h-2"/>
+  </svg>
+);
+
 export const IconMap: Record<string, React.FC<IconProps>> = {
   space_dashboard: DashboardIcon,
   inventory_2: InventoryIcon,

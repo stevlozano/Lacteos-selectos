@@ -8,7 +8,9 @@ import { useTheme } from '@/context/ThemeContext';
 import { useOrders } from '@/context/OrdersContext';
 import { useProducts } from '@/context/ProductsContext';
 import { Product } from '@/types';
-import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon } from '@/components/Icons';
+import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon, NotificationsIcon, TruckIcon } from '@/components/Icons';
+import { AdminNotifications } from '@/components/AdminNotifications';
+import { supabase } from '@/lib/supabase';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 type FilterCategory = Category | 'all';
@@ -517,6 +519,54 @@ function OrdersView() {
   const [editingPayment, setEditingPayment] = useState<string | null>(null);
   const [newPaymentMethod, setNewPaymentMethod] = useState<'yape' | 'efectivo' | 'credito'>('efectivo');
   const [newCreditDueDate, setNewCreditDueDate] = useState('');
+  const [approvedOrders, setApprovedOrders] = useState<Set<string>>(new Set());
+  const [inDeliveryOrders, setInDeliveryOrders] = useState<Set<string>>(new Set());
+
+  // Send notification to customer
+  const sendNotificationToCustomer = async (title: string, body: string) => {
+    try {
+      const { data: subscriptions } = await supabase
+        .from('push_subscriptions')
+        .select('*')
+        .eq('user_type', 'customer');
+
+      if (subscriptions && subscriptions.length > 0) {
+        for (const sub of subscriptions) {
+          await fetch('/api/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              subscription: {
+                endpoint: sub.endpoint,
+                keys: { p256dh: sub.p256dh, auth: sub.auth }
+              },
+              notification: { title, body, tag: 'order-update', requireInteraction: true }
+            })
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error sending notification:', error);
+    }
+  };
+
+  // Approve order and notify customer
+  const approveOrder = async (orderId: string) => {
+    setApprovedOrders(prev => new Set(prev).add(orderId));
+    await sendNotificationToCustomer(
+      '¡Pedido Aprobado!',
+      'Tu pedido ha sido aprobado y está en preparación.'
+    );
+  };
+
+  // Mark order as in delivery and notify customer
+  const markAsInDelivery = async (orderId: string) => {
+    setInDeliveryOrders(prev => new Set(prev).add(orderId));
+    await sendNotificationToCustomer(
+      '¡Pedido en Camino!',
+      'Tu pedido está en camino a tu ubicación.'
+    );
+  };
 
   const filteredOrders = orders.filter(order => filter === 'all' || order.status === filter);
 
@@ -604,6 +654,9 @@ function OrdersView() {
           Gestiona las órdenes
         </p>
       </div>
+
+      {/* Notifications Section */}
+      <AdminNotifications />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 lg:gap-6">
@@ -903,6 +956,32 @@ function OrdersView() {
                 <div className="flex flex-wrap gap-2 lg:gap-4 mt-4 lg:mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-900">
                   {order.status === 'pending' && (
                     <>
+                      {/* Approve Button */}
+                      <button
+                        onClick={() => approveOrder(order.id)}
+                        className={`flex-1 lg:flex-none py-2 px-4 text-xs font-light transition-colors uppercase tracking-wider flex items-center justify-center gap-2 ${
+                          approvedOrders.has(order.id)
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                            : 'text-neutral-500 hover:text-green-600 dark:text-neutral-500 dark:hover:text-green-400'
+                        }`}
+                      >
+                        <NotificationsIcon size={16} />
+                        {approvedOrders.has(order.id) ? 'Aprobado ✓' : 'Aprobar'}
+                      </button>
+
+                      {/* In Delivery Button */}
+                      <button
+                        onClick={() => markAsInDelivery(order.id)}
+                        className={`flex-1 lg:flex-none py-2 px-4 text-xs font-light transition-colors uppercase tracking-wider flex items-center justify-center gap-2 ${
+                          inDeliveryOrders.has(order.id)
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                            : 'text-neutral-500 hover:text-blue-600 dark:text-neutral-500 dark:hover:text-blue-400'
+                        }`}
+                      >
+                        <TruckIcon size={16} />
+                        {inDeliveryOrders.has(order.id) ? 'En Camino ✓' : 'En Camino'}
+                      </button>
+
                       <button
                         onClick={() => updateOrderStatus(order.id, 'completed')}
                         className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-500 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors uppercase tracking-wider flex items-center justify-center gap-2"

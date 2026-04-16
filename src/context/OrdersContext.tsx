@@ -145,6 +145,39 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     }
     
     console.log('Order inserted successfully:', data);
+    
+    // Notify admins about new order
+    try {
+      const { data: adminSubscriptions } = await supabase
+        .from('push_subscriptions')
+        .select('*')
+        .eq('user_type', 'admin');
+      
+      if (adminSubscriptions && adminSubscriptions.length > 0) {
+        for (const sub of adminSubscriptions) {
+          await fetch('/api/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              subscription: {
+                endpoint: sub.endpoint,
+                keys: { p256dh: sub.p256dh, auth: sub.auth }
+              },
+              notification: {
+                title: '¡Nuevo Pedido!',
+                body: `Pedido de ${orderData.customerName} - S/${orderData.total.toFixed(2)}`,
+                tag: 'new-order',
+                requireInteraction: true,
+                data: { orderId: newOrder.id, isAdmin: true }
+              }
+            })
+          });
+        }
+      }
+    } catch (notifyError) {
+      console.error('Error notifying admins:', notifyError);
+    }
+    
     // Real-time subscription will update the state
   };
 

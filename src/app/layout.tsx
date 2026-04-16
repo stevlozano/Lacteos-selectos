@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { ProductsProvider } from '@/context/ProductsContext';
 import { OrdersProvider } from '@/context/OrdersContext';
+import { NotificationsProvider } from '@/context/NotificationsContext';
 import { PWAInstaller } from '@/components/PWAInstaller';
 import { UpdateNotification } from '@/components/UpdateNotification';
 
@@ -52,11 +53,13 @@ export default function RootLayout({
             <AuthProvider>
               <ProductsProvider>
                 <OrdersProvider>
-                  <CartProvider>
-                    {children}
-                    <PWAInstaller />
-                    <UpdateNotification />
-                  </CartProvider>
+                  <NotificationsProvider>
+                    <CartProvider>
+                      {children}
+                      <PWAInstaller />
+                      <UpdateNotification />
+                    </CartProvider>
+                  </NotificationsProvider>
                 </OrdersProvider>
               </ProductsProvider>
             </AuthProvider>

@@ -149,3 +149,65 @@ self.addEventListener('fetch', (event) => {
       .catch(() => caches.match(request))
   );
 });
+
+// Push notification event
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push event received:', event);
+
+  let data = {};
+  try {
+    data = event.data?.json() || {};
+  } catch (e) {
+    data = { title: 'Nueva notificación', body: event.data?.text() || '' };
+  }
+
+  const title = data.title || 'Lácteos Selectos';
+  const options = {
+    body: data.body || 'Tienes una nueva notificación',
+    icon: '/icon-192x192.png',
+    badge: '/icon-192x192.png',
+    tag: data.tag || 'default',
+    requireInteraction: data.requireInteraction || false,
+    data: data.data || {},
+    actions: data.actions || []
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Notification click event
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification click:', event);
+  event.notification.close();
+
+  const notificationData = event.notification.data;
+  let urlToOpen = '/';
+
+  if (notificationData?.orderId) {
+    urlToOpen = notificationData.isAdmin ? '/admin/dashboard' : '/';
+  }
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Focus existing window if open
+      for (const client of clientList) {
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Open new window if not found
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// Subscribe to push (called from client)
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});

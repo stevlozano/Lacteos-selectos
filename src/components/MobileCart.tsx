@@ -81,9 +81,19 @@ export function MobileCart() {
       }
       
       clearCart();
+      // Reset form data for next order
+      setFormData({
+        customerName: '',
+        phone: '',
+        address: '',
+        notes: '',
+        location: '',
+        paymentMethod: 'efectivo',
+        creditDueDate: ''
+      });
       setShowForm(false);
       setIsOpen(false);
-      console.log('[MobileCart] handleSubmit completed');
+      console.log('[MobileCart] handleSubmit completed - form reset');
     } catch (error) {
       console.error('[MobileCart] Error in handleSubmit:', error);
       alert('Hubo un error al enviar el pedido. Por favor intenta de nuevo.');

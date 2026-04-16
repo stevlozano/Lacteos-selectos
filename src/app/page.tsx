@@ -491,6 +491,61 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Download App Section */}
+      <section className="py-20 px-6 bg-neutral-50 dark:bg-neutral-900">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-white rounded-2xl mb-6">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-white dark:text-black"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-extralight tracking-tight mb-4">
+            Descarga nuestra app
+          </h2>
+          <p className="text-base font-light text-neutral-600 dark:text-neutral-400 mb-8 max-w-lg mx-auto">
+            Instala la app de Lácteos Selectos en tu celular para hacer pedidos más rápido y recibir notificaciones de ofertas exclusivas.
+          </p>
+          <a
+            href="/LacteosSelectos.apk"
+            download
+            className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-black dark:bg-white text-white dark:text-black rounded-full font-light text-sm tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-all duration-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 2L2 7l10 5 10-5-10-5z" />
+              <path d="M2 17l10 5 10-5" />
+              <path d="M2 12l10 5 10-5" />
+            </svg>
+            Descargar APK (Android)
+          </a>
+          <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-4">
+            Compatible con Android 5.0+. Para instalar, permite &quot;Orígenes desconocidos&quot; en Configuración.
+          </p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-16 px-6 border-t border-neutral-100 dark:border-neutral-900">
         <div className="max-w-6xl mx-auto">

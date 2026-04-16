@@ -148,13 +148,22 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     
     // Notify admins about new order
     try {
-      const { data: adminSubscriptions } = await supabase
+      console.log('[OrdersContext] Looking for admin subscriptions...');
+      const { data: adminSubscriptions, error: subError } = await supabase
         .from('push_subscriptions')
         .select('*')
         .eq('user_type', 'admin');
       
+      if (subError) {
+        console.error('[OrdersContext] Error fetching admin subscriptions:', subError);
+      } else {
+        console.log('[OrdersContext] Found admin subscriptions:', adminSubscriptions?.length || 0);
+      }
+      
       if (adminSubscriptions && adminSubscriptions.length > 0) {
         for (const sub of adminSubscriptions) {
+          console.log('[OrdersContext] Sending notification to admin:', sub.endpoint.substring(0, 50) + '...');
+          
           const pushSubscription = {
             endpoint: sub.endpoint,
             keys: {
@@ -163,7 +172,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
             }
           };
           
-          await fetch('/api/push/send', {
+          const response = await fetch('/api/push/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -177,10 +186,19 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
               }
             })
           });
+          
+          if (response.ok) {
+            console.log('[OrdersContext] Notification sent successfully to admin');
+          } else {
+            const errorText = await response.text();
+            console.error('[OrdersContext] Failed to send notification:', response.status, errorText);
+          }
         }
+      } else {
+        console.log('[OrdersContext] No admin subscriptions found - admin needs to subscribe to notifications');
       }
     } catch (notifyError) {
-      console.error('Error notifying admins:', notifyError);
+      console.error('[OrdersContext] Error notifying admins:', notifyError);
     }
     
     // Real-time subscription will update the state

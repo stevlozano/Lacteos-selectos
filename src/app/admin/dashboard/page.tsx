@@ -8,7 +8,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useOrders } from '@/context/OrdersContext';
 import { useProducts } from '@/context/ProductsContext';
 import { Product } from '@/types';
-import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon } from '@/components/Icons';
+import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon } from '@/components/Icons';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 type FilterCategory = Category | 'all';
@@ -511,8 +511,65 @@ function ProductsView() {
 function OrdersView() {
   const { orders, updateOrderStatus, deleteOrder, getTotalSales } = useOrders();
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const filteredOrders = orders.filter(order => filter === 'all' || order.status === filter);
+
+  // Group orders by date for calendar
+  const ordersByDate = orders.reduce((acc, order) => {
+    const dateKey = new Date(order.createdAt).toDateString();
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(order);
+    return acc;
+  }, {} as Record<string, typeof orders>);
+
+  // Get orders for selected date
+  const selectedDateOrders = selectedDate ? ordersByDate[selectedDate.toDateString()] || [] : [];
+
+  // Calculate total sales and products for selected date
+  const selectedDateStats = selectedDateOrders.reduce((acc, order) => {
+    if (order.status === 'completed') {
+      acc.totalSales += order.total;
+      order.items.forEach(item => {
+        acc.products[item.name] = (acc.products[item.name] || 0) + item.quantity;
+      });
+    }
+    return acc;
+  }, { totalSales: 0, products: {} as Record<string, number> });
+
+  // Calendar helpers
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    const days: (Date | null)[] = [];
+    for (let i = 0; i < startingDay; i++) {
+      days.push(null);
+    }
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    return days;
+  };
+
+  const getSalesForDate = (date: Date) => {
+    const dateOrders = ordersByDate[date.toDateString()] || [];
+    return dateOrders
+      .filter(o => o.status === 'completed')
+      .reduce((sum, o) => sum + o.total, 0);
+  };
+
+  const hasOrdersOnDate = (date: Date) => {
+    return ordersByDate[date.toDateString()]?.length > 0;
+  };
 
   const stats = {
     total: orders.length,
@@ -559,31 +616,196 @@ function OrdersView() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-2 lg:gap-3 border-b border-neutral-100 dark:border-neutral-900 pb-4 lg:pb-6">
-        {(['all', 'pending', 'completed', 'cancelled'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`flex items-center gap-2 px-4 lg:px-5 py-2 text-sm font-light tracking-wide transition-all
-              ${filter === f 
-                ? 'bg-black dark:bg-white text-white dark:text-black' 
-                : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
-              }`}
-          >
-            {f === 'all' && <ReceiptIcon size={16} />}
-            {f === 'pending' && <PendingActionsIcon size={16} />}
-            {f === 'completed' && <CheckCircleIcon size={16} />}
-            {f === 'cancelled' && <CancelIcon size={16} />}
-            <span className="hidden sm:inline">{filterLabels[f]}</span>
-            <span className={`ml-1 lg:ml-2 text-xs ${filter === f ? 'opacity-70' : 'text-neutral-300 dark:text-neutral-600'}`}>
-              {f === 'all' ? orders.length : orders.filter(o => o.status === f).length}
-            </span>
-          </button>
-        ))}
+      {/* View Toggle */}
+      <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-900 pb-4 lg:pb-6">
+        <div className="flex flex-wrap gap-2 lg:gap-3">
+          {(['all', 'pending', 'completed', 'cancelled'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`flex items-center gap-2 px-4 lg:px-5 py-2 text-sm font-light tracking-wide transition-all
+                ${filter === f 
+                  ? 'bg-black dark:bg-white text-white dark:text-black' 
+                  : 'text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900'
+                }`}
+            >
+              {f === 'all' && <ReceiptIcon size={16} />}
+              {f === 'pending' && <PendingActionsIcon size={16} />}
+              {f === 'completed' && <CheckCircleIcon size={16} />}
+              {f === 'cancelled' && <CancelIcon size={16} />}
+              <span className="hidden sm:inline">{filterLabels[f]}</span>
+              <span className={`ml-1 lg:ml-2 text-xs ${filter === f ? 'opacity-70' : 'text-neutral-300 dark:text-neutral-600'}`}>
+                {f === 'all' ? orders.length : orders.filter(o => o.status === f).length}
+              </span>
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-light tracking-wide border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-600 transition-all"
+        >
+          <CalendarIcon size={16} />
+          <span className="hidden sm:inline">
+            {viewMode === 'list' ? 'Ver calendario' : 'Ver lista'}
+          </span>
+        </button>
       </div>
 
-      {/* Orders List */}
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <div className="space-y-6">
+          {/* Calendar Navigation */}
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+              className="p-2 text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+            <h2 className="text-lg font-light tracking-tight">
+              {currentMonth.toLocaleDateString('es-PE', { month: 'long', year: 'numeric' })}
+            </h2>
+            <button
+              onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+              className="p-2 text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="border border-neutral-100 dark:border-neutral-900">
+            {/* Weekday Headers */}
+            <div className="grid grid-cols-7 border-b border-neutral-100 dark:border-neutral-900">
+              {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => (
+                <div key={day} className="py-2 text-center text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Days */}
+            <div className="grid grid-cols-7">
+              {getDaysInMonth(currentMonth).map((date, idx) => (
+                <div key={idx} className="min-h-[80px] border-r border-b border-neutral-100 dark:border-neutral-900 last:border-r-0">
+                  {date && (
+                    <button
+                      onClick={() => setSelectedDate(date)}
+                      className={`w-full h-full p-2 text-left transition-colors ${
+                        selectedDate?.toDateString() === date.toDateString()
+                          ? 'bg-neutral-100 dark:bg-neutral-900'
+                          : 'hover:bg-neutral-50 dark:hover:bg-neutral-900/50'
+                      }`}
+                    >
+                      <span className={`text-sm font-light ${
+                        hasOrdersOnDate(date) ? 'font-medium text-black dark:text-white' : 'text-neutral-500 dark:text-neutral-500'
+                      }`}>
+                        {date.getDate()}
+                      </span>
+                      {getSalesForDate(date) > 0 && (
+                        <p className="text-xs font-light text-neutral-400 dark:text-neutral-500 mt-1">
+                          S/{getSalesForDate(date).toFixed(2)}
+                        </p>
+                      )}
+                      {hasOrdersOnDate(date) && (
+                        <p className="text-[10px] font-light text-neutral-300 dark:text-neutral-600 mt-0.5">
+                          {ordersByDate[date.toDateString()].length} pedidos
+                        </p>
+                      )}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Selected Date Detail */}
+          {selectedDate && (
+            <div className="border border-neutral-100 dark:border-neutral-900 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-light tracking-tight">
+                  Ventas del {selectedDate.toLocaleDateString('es-PE', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </h3>
+                <button
+                  onClick={() => setSelectedDate(null)}
+                  className="text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+                >
+                  <CloseIcon size={20} />
+                </button>
+              </div>
+
+              {selectedDateOrders.length === 0 ? (
+                <p className="text-sm font-light text-neutral-400 dark:text-neutral-600">
+                  No hay pedidos en esta fecha
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="border border-neutral-100 dark:border-neutral-900 p-4">
+                      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase">Total ventas</p>
+                      <p className="text-2xl font-extralight text-black dark:text-white">
+                        S/{selectedDateStats.totalSales.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="border border-neutral-100 dark:border-neutral-900 p-4">
+                      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 uppercase">Total pedidos</p>
+                      <p className="text-2xl font-extralight text-black dark:text-white">
+                        {selectedDateOrders.length}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Products sold */}
+                  {Object.keys(selectedDateStats.products).length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-light text-neutral-500 dark:text-neutral-500 uppercase tracking-wider mb-3">
+                        Productos vendidos
+                      </h4>
+                      <div className="space-y-2">
+                        {Object.entries(selectedDateStats.products).map(([name, quantity]) => (
+                          <div key={name} className="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-900 last:border-0">
+                            <span className="text-sm font-light text-black dark:text-white">{name}</span>
+                            <span className="text-sm font-light text-neutral-500 dark:text-neutral-500">{quantity} unidades</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Orders list for this date */}
+                  <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-900">
+                    <h4 className="text-sm font-light text-neutral-500 dark:text-neutral-500 uppercase tracking-wider mb-3">
+                      Pedidos del día
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedDateOrders.map(order => (
+                        <div key={order.id} className="flex items-center justify-between py-2 text-sm">
+                          <div>
+                            <span className="font-light text-black dark:text-white">{order.customerName}</span>
+                            <span className="text-neutral-400 dark:text-neutral-600 ml-2">
+                              {order.status === 'completed' ? '✓' : order.status === 'cancelled' ? '✗' : '○'}
+                            </span>
+                          </div>
+                          <span className="font-light text-neutral-600 dark:text-neutral-400">
+                            S/{order.total.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Orders List - Only show in list view */}
+      {viewMode === 'list' && (
       <div>
         {filteredOrders.length === 0 ? (
           <div className="py-16 text-center border border-neutral-100 dark:border-neutral-900">
@@ -677,6 +899,7 @@ function OrdersView() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

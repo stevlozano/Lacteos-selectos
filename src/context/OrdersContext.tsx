@@ -189,6 +189,11 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
           
           if (response.ok) {
             console.log('[OrdersContext] Notification sent successfully to admin');
+          } else if (response.status === 410) {
+            // Subscription expired - remove from database
+            console.log('[OrdersContext] Subscription expired, removing from database:', sub.endpoint.substring(0, 50) + '...');
+            await supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+            console.log('[OrdersContext] Expired subscription removed');
           } else {
             const errorText = await response.text();
             console.error('[OrdersContext] Failed to send notification:', response.status, errorText);

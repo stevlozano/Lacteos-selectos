@@ -38,20 +38,41 @@ export async function POST(request: NextRequest) {
 
     console.log('[API Push] Sending notification to:', subscription.endpoint?.substring(0, 50));
     
-    await webpush.sendNotification(
-      subscription,
-      JSON.stringify(notification)
-    );
-
-    console.log('[API Push] Notification sent successfully');
-    return NextResponse.json({ success: true });
+    try {
+      await webpush.sendNotification(
+        subscription,
+        JSON.stringify(notification)
+      );
+      console.log('[API Push] Notification sent successfully');
+      return NextResponse.json({ success: true });
+    } catch (webPushError: any) {
+      console.error('[API Push] WebPush error:', webPushError);
+      
+      // Handle specific error codes
+      const statusCode = webPushError.statusCode;
+      const body = webPushError.body;
+      
+      console.log('[API Push] Error status code:', statusCode);
+      console.log('[API Push] Error body:', body);
+      
+      // 410 Gone = Subscription expired, 404 = Not found, 403 = Invalid
+      if (statusCode === 410 || statusCode === 404 || statusCode === 403) {
+        console.log('[API Push] Subscription is expired or invalid, should be removed from database');
+        return NextResponse.json({ 
+          error: 'Subscription expired', 
+          expired: true,
+          details: body 
+        }, { status: 410 });
+      }
+      
+      // Other errors
+      return NextResponse.json(
+        { error: 'Failed to send notification', details: body || webPushError.message },
+        { status: 500 }
+      );
+    }
   } catch (error: any) {
-    console.error('[API Push] Error sending push notification:', error);
-    console.error('[API Push] Error details:', {
-      message: error.message,
-      statusCode: error.statusCode,
-      body: error.body
-    });
+    console.error('[API Push] General error:', error);
     return NextResponse.json(
       { error: 'Failed to send notification', details: error.message },
       { status: 500 }

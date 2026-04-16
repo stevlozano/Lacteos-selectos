@@ -63,6 +63,16 @@ export function Cart() {
     window.open(url, '_blank');
     
     clearCart();
+    // Reset form data for next order
+    setFormData({
+      customerName: '',
+      phone: '',
+      address: '',
+      notes: '',
+      location: '',
+      paymentMethod: 'efectivo',
+      creditDueDate: ''
+    });
     setShowForm(false);
     setIsOpen(false);
   };

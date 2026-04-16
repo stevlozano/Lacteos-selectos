@@ -6,6 +6,8 @@ import { useTheme } from '@/context/ThemeContext';
 
 const PHONE_NUMBER = '51932398293';
 
+const APK_URL = 'https://lacteos-selectos.vercel.app/LacteosSelectos.apk';
+
 function generateInquiryMessage(): string {
   const date = new Date().toLocaleDateString('es-PE', {
     weekday: 'long',
@@ -22,6 +24,8 @@ function generateInquiryMessage(): string {
   message += `• Quesos frescos artesanales\n`;
   message += `• Mantequilla natural\n`;
   message += `• Manjar blanco tradicional\n\n`;
+  message += `📱 *Descarga nuestra app:*\n`;
+  message += `${APK_URL}\n\n`;
   message += `¿Podrían enviarme el catálogo con precios actuales y disponibilidad?\n\n`;
   message += `Gracias 😊`;
 

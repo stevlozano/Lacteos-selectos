@@ -157,7 +157,9 @@ self.addEventListener('push', (event) => {
   let data = {};
   try {
     data = event.data?.json() || {};
+    console.log('[SW] Push data parsed:', data);
   } catch (e) {
+    console.log('[SW] Push data parse error:', e);
     data = { title: 'Nueva notificación', body: event.data?.text() || '' };
   }
 
@@ -172,8 +174,12 @@ self.addEventListener('push', (event) => {
     actions: data.actions || []
   };
 
+  console.log('[SW] Showing notification:', title, options);
+
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .then(() => console.log('[SW] Notification shown successfully'))
+      .catch(err => console.error('[SW] Failed to show notification:', err))
   );
 });
 

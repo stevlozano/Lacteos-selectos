@@ -31,45 +31,63 @@ export function MobileCart() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[MobileCart] handleSubmit started');
     
-    // Suscribir cliente a notificaciones (silenciosamente)
-    if (isSupported) {
-      try {
-        await subscribe('customer');
-      } catch (err) {
-        console.log('Notification subscription optional:', err);
+    try {
+      // Suscribir cliente a notificaciones (silenciosamente, no bloquear si falla)
+      if (isSupported) {
+        try {
+          console.log('[MobileCart] Subscribing to notifications...');
+          await subscribe('customer');
+          console.log('[MobileCart] Subscription successful');
+        } catch (err) {
+          console.log('[MobileCart] Notification subscription failed (optional):', err);
+        }
       }
+      
+      // Guardar orden en el sistema
+      console.log('[MobileCart] Saving order...');
+      await addOrder({
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          unit: item.unit,
+        })),
+        customerName: formData.customerName,
+        phone: formData.phone,
+        address: formData.address,
+        notes: formData.notes,
+        location: formData.location,
+        total,
+        paymentMethod: formData.paymentMethod,
+        creditDueDate: formData.paymentMethod === 'credito' ? formData.creditDueDate : undefined,
+      });
+      console.log('[MobileCart] Order saved');
+      
+      // Generar mensaje y abrir WhatsApp
+      const orderText = generateWhatsAppMessage(items, formData, total);
+      const phoneNumber = '51932398293';
+      const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(orderText)}`;
+      
+      console.log('[MobileCart] Opening WhatsApp:', url);
+      
+      // En móvil, usar location.href funciona mejor que window.open
+      if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        window.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+      
+      clearCart();
+      setShowForm(false);
+      setIsOpen(false);
+      console.log('[MobileCart] handleSubmit completed');
+    } catch (error) {
+      console.error('[MobileCart] Error in handleSubmit:', error);
+      alert('Hubo un error al enviar el pedido. Por favor intenta de nuevo.');
     }
-    
-    // Guardar orden en el sistema (await para asegurar que se guarde)
-    await addOrder({
-      items: items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        unit: item.unit,
-      })),
-      customerName: formData.customerName,
-      phone: formData.phone,
-      address: formData.address,
-      notes: formData.notes,
-      location: formData.location,
-      total,
-      paymentMethod: formData.paymentMethod,
-      creditDueDate: formData.paymentMethod === 'credito' ? formData.creditDueDate : undefined,
-    });
-    
-    const orderText = generateWhatsAppMessage(items, formData, total);
-    const phoneNumber = '51932398293';
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(orderText)}`;
-    
-    // Abrir WhatsApp en nueva pestaña
-    window.open(url, '_blank');
-    
-    clearCart();
-    setShowForm(false);
-    setIsOpen(false);
   };
 
   const getCurrentLocation = () => {

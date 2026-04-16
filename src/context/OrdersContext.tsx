@@ -20,6 +20,8 @@ export interface Order {
   total: number;
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: string;
+  paymentMethod: 'yape' | 'efectivo' | 'credito';
+  creditDueDate?: string;
 }
 
 // Database type
@@ -40,6 +42,8 @@ interface DBOrder {
   total: number;
   status: 'pending' | 'completed' | 'cancelled';
   created_at: string;
+  payment_method: 'yape' | 'efectivo' | 'credito';
+  credit_due_date?: string | null;
 }
 
 const toOrder = (dbOrder: DBOrder): Order => ({
@@ -53,14 +57,18 @@ const toOrder = (dbOrder: DBOrder): Order => ({
   total: dbOrder.total,
   status: dbOrder.status,
   createdAt: dbOrder.created_at,
+  paymentMethod: dbOrder.payment_method || 'efectivo',
+  creditDueDate: dbOrder.credit_due_date ? dbOrder.credit_due_date : undefined,
 });
 
 interface OrdersContextType {
   orders: Order[];
   addOrder: (order: Omit<Order, 'id' | 'createdAt' | 'status'>) => Promise<void>;
   updateOrderStatus: (id: string, status: Order['status']) => Promise<void>;
+  updatePaymentMethod: (id: string, paymentMethod: Order['paymentMethod'], creditDueDate?: string) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
   getTotalSales: () => number;
+  getSalesByPaymentMethod: () => { yape: number; efectivo: number; credito: number };
   getOrdersByDate: (date: string) => Order[];
   getTodayOrders: () => Order[];
   loading: boolean;
@@ -124,6 +132,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       total: orderData.total,
       status: 'pending' as const,
       created_at: new Date().toISOString(),
+      payment_method: orderData.paymentMethod || 'efectivo',
+      credit_due_date: orderData.creditDueDate,
     };
     
     console.log('Inserting to Supabase:', newOrder);
@@ -147,6 +157,18 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     // Real-time subscription will update the state
   };
 
+  const updatePaymentMethod = async (id: string, paymentMethod: Order['paymentMethod'], creditDueDate?: string) => {
+    const updateData: Partial<DBOrder> = { payment_method: paymentMethod };
+    if (creditDueDate !== undefined) {
+      updateData.credit_due_date = creditDueDate || null;
+    }
+    const { error } = await supabase.from('orders').update(updateData).eq('id', id);
+    if (error) {
+      console.error('Error updating payment method:', error);
+      throw error;
+    }
+  };
+
   const deleteOrder = async (id: string) => {
     const { error } = await supabase.from('orders').delete().eq('id', id);
     if (error) {
@@ -160,6 +182,15 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     return orders
       .filter(o => o.status === 'completed')
       .reduce((sum, o) => sum + o.total, 0);
+  };
+
+  const getSalesByPaymentMethod = () => {
+    const completedOrders = orders.filter(o => o.status === 'completed');
+    return {
+      yape: completedOrders.filter(o => o.paymentMethod === 'yape').reduce((sum, o) => sum + o.total, 0),
+      efectivo: completedOrders.filter(o => o.paymentMethod === 'efectivo').reduce((sum, o) => sum + o.total, 0),
+      credito: completedOrders.filter(o => o.paymentMethod === 'credito').reduce((sum, o) => sum + o.total, 0),
+    };
   };
 
   const getOrdersByDate = (date: string) => {
@@ -180,8 +211,10 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       orders, 
       addOrder, 
       updateOrderStatus, 
+      updatePaymentMethod,
       deleteOrder,
       getTotalSales,
+      getSalesByPaymentMethod,
       getOrdersByDate,
       getTodayOrders,
       loading

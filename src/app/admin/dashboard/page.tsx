@@ -509,11 +509,14 @@ function ProductsView() {
 
 // Orders View Component
 function OrdersView() {
-  const { orders, updateOrderStatus, deleteOrder, getTotalSales } = useOrders();
+  const { orders, updateOrderStatus, updatePaymentMethod, deleteOrder, getTotalSales, getSalesByPaymentMethod } = useOrders();
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [editingPayment, setEditingPayment] = useState<string | null>(null);
+  const [newPaymentMethod, setNewPaymentMethod] = useState<'yape' | 'efectivo' | 'credito'>('efectivo');
+  const [newCreditDueDate, setNewCreditDueDate] = useState('');
 
   const filteredOrders = orders.filter(order => filter === 'all' || order.status === filter);
 
@@ -614,6 +617,35 @@ function OrdersView() {
             S/{stats.totalSales.toFixed(2)}
           </p>
         </div>
+      </div>
+
+      {/* Payment Method Stats */}
+      <div className="grid grid-cols-3 gap-4 lg:gap-6">
+        {(() => {
+          const sales = getSalesByPaymentMethod();
+          return (
+            <>
+              <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6 bg-purple-50 dark:bg-purple-900/10">
+                <p className="text-xs font-light text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-2">Yape</p>
+                <p className="text-xl lg:text-2xl font-extralight text-black dark:text-white">
+                  S/{sales.yape.toFixed(2)}
+                </p>
+              </div>
+              <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6 bg-green-50 dark:bg-green-900/10">
+                <p className="text-xs font-light text-green-600 dark:text-green-400 uppercase tracking-widest mb-2">Efectivo</p>
+                <p className="text-xl lg:text-2xl font-extralight text-black dark:text-white">
+                  S/{sales.efectivo.toFixed(2)}
+                </p>
+              </div>
+              <div className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6 bg-orange-50 dark:bg-orange-900/10">
+                <p className="text-xs font-light text-orange-600 dark:text-orange-400 uppercase tracking-widest mb-2">Fiado</p>
+                <p className="text-xl lg:text-2xl font-extralight text-black dark:text-white">
+                  S/{sales.credito.toFixed(2)}
+                </p>
+              </div>
+            </>
+          );
+        })()}
       </div>
 
       {/* View Toggle */}
@@ -856,6 +888,15 @@ function OrdersView() {
                     <div className="lg:mt-2">
                       <StatusBadge status={order.status} />
                     </div>
+                    {/* Payment Method Badge */}
+                    <div className="flex items-center gap-1 mt-1">
+                      <PaymentMethodBadge method={order.paymentMethod} />
+                      {order.paymentMethod === 'credito' && order.creditDueDate && (
+                        <span className="text-[10px] text-orange-500 dark:text-orange-400">
+                          (Pagar: {new Date(order.creditDueDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })})
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -893,6 +934,57 @@ function OrdersView() {
                   >
                     <DeleteIcon size={16} />
                   </button>
+
+                  {/* Edit Payment Button */}
+                  {editingPayment === order.id ? (
+                    <div className="flex-1 flex flex-wrap gap-2 items-center">
+                      <select
+                        value={newPaymentMethod}
+                        onChange={(e) => setNewPaymentMethod(e.target.value as 'yape' | 'efectivo' | 'credito')}
+                        className="text-xs border border-neutral-300 dark:border-neutral-600 px-2 py-1 bg-white dark:bg-neutral-700"
+                      >
+                        <option value="yape">Yape</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="credito">Fiado</option>
+                      </select>
+                      {newPaymentMethod === 'credito' && (
+                        <input
+                          type="date"
+                          value={newCreditDueDate}
+                          onChange={(e) => setNewCreditDueDate(e.target.value)}
+                          className="text-xs border border-neutral-300 dark:border-neutral-600 px-2 py-1"
+                          placeholder="Fecha de pago"
+                        />
+                      )}
+                      <button
+                        onClick={async () => {
+                          await updatePaymentMethod(order.id, newPaymentMethod, newPaymentMethod === 'credito' ? newCreditDueDate : undefined);
+                          setEditingPayment(null);
+                        }}
+                        className="text-xs px-2 py-1 bg-black dark:bg-white text-white dark:text-black"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={() => setEditingPayment(null)}
+                        className="text-xs px-2 py-1 border border-neutral-300 dark:border-neutral-600"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditingPayment(order.id);
+                        setNewPaymentMethod(order.paymentMethod);
+                        setNewCreditDueDate(order.creditDueDate || '');
+                      }}
+                      className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-400 hover:text-blue-600 dark:text-neutral-600 dark:hover:text-blue-400 transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      <EditIcon size={16} />
+                      Editar Pago
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -942,6 +1034,20 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span className={`px-2 lg:px-3 py-1 text-xs font-light tracking-wider uppercase ${styles[status as keyof typeof styles]}`}>
       {labels[status as keyof typeof labels]}
+    </span>
+  );
+}
+
+function PaymentMethodBadge({ method }: { method: 'yape' | 'efectivo' | 'credito' }) {
+  const styles = {
+    yape: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    efectivo: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    credito: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  };
+  const labels = { yape: 'Yape', efectivo: 'Efectivo', credito: 'Fiado' };
+  return (
+    <span className={`px-2 py-0.5 text-[10px] font-light tracking-wider uppercase rounded ${styles[method]}`}>
+      {labels[method]}
     </span>
   );
 }

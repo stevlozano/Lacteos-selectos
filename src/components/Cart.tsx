@@ -15,7 +15,9 @@ export function Cart() {
     phone: '',
     address: '',
     notes: '',
-    location: ''
+    location: '',
+    paymentMethod: 'efectivo' as 'yape' | 'efectivo' | 'credito',
+    creditDueDate: ''
   });
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -38,6 +40,8 @@ export function Cart() {
       notes: formData.notes,
       location: formData.location,
       total,
+      paymentMethod: formData.paymentMethod,
+      creditDueDate: formData.paymentMethod === 'credito' ? formData.creditDueDate : undefined,
     });
     
     const orderText = generateWhatsAppMessage(items, formData, total);
@@ -90,7 +94,7 @@ export function Cart() {
 
   const generateWhatsAppMessage = (
     cartItems: CartItem[],
-    customerData: { customerName: string; phone: string; address: string; notes: string; location?: string },
+    customerData: { customerName: string; phone: string; address: string; notes: string; location?: string; paymentMethod: 'yape' | 'efectivo' | 'credito'; creditDueDate?: string },
     orderTotal: number
   ): string => {
     const date = new Date().toLocaleDateString('es-PE', { 
@@ -124,8 +128,12 @@ export function Cart() {
       message += `   ${item.quantity} x S/${item.price.toFixed(2)} = S/${subtotal.toFixed(2)}\n\n`;
     });
 
-    message += `💰 *Total: S/${orderTotal.toFixed(2)}*\n\n`;
-    message += `✅ Confirmar pedido por favor`;
+    message += `💰 *Total: S/${orderTotal.toFixed(2)}*\n`;
+    message += `💳 *Método de pago:* ${customerData.paymentMethod === 'yape' ? 'Yape' : customerData.paymentMethod === 'efectivo' ? 'Efectivo' : 'Crédito/Fiado'}\n`;
+    if (customerData.paymentMethod === 'credito' && customerData.creditDueDate) {
+      message += `📅 *Fecha de pago:* ${customerData.creditDueDate}\n`;
+    }
+    message += `\n✅ Confirmar pedido por favor`;
 
     return message;
   };
@@ -230,7 +238,63 @@ export function Cart() {
               onChange={e => setFormData({...formData, notes: e.target.value})}
               className="w-full border border-neutral-300 dark:border-neutral-600 px-3 py-2 text-sm focus:border-black dark:focus:border-white focus:outline-none resize-none bg-white dark:bg-neutral-700 text-black dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500"
             />
-            
+
+            {/* Selector de método de pago */}
+            <div className="border border-neutral-300 dark:border-neutral-600 p-3 bg-white dark:bg-neutral-700">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2 uppercase tracking-wider">Método de pago</p>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, paymentMethod: 'yape'})}
+                  className={`py-2 px-3 text-sm border transition-all ${
+                    formData.paymentMethod === 'yape'
+                      ? 'bg-purple-100 border-purple-500 text-purple-700 dark:bg-purple-900/30 dark:border-purple-400 dark:text-purple-300'
+                      : 'border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-purple-300'
+                  }`}
+                >
+                  Yape
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, paymentMethod: 'efectivo'})}
+                  className={`py-2 px-3 text-sm border transition-all ${
+                    formData.paymentMethod === 'efectivo'
+                      ? 'bg-green-100 border-green-500 text-green-700 dark:bg-green-900/30 dark:border-green-400 dark:text-green-300'
+                      : 'border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-green-300'
+                  }`}
+                >
+                  Efectivo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({...formData, paymentMethod: 'credito'})}
+                  className={`py-2 px-3 text-sm border transition-all ${
+                    formData.paymentMethod === 'credito'
+                      ? 'bg-orange-100 border-orange-500 text-orange-700 dark:bg-orange-900/30 dark:border-orange-400 dark:text-orange-300'
+                      : 'border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:border-orange-300'
+                  }`}
+                >
+                  Fiado
+                </button>
+              </div>
+
+              {/* Fecha de pago para crédito */}
+              {formData.paymentMethod === 'credito' && (
+                <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-600">
+                  <label className="text-xs text-neutral-500 dark:text-neutral-400 block mb-1">
+                    Fecha de pago
+                  </label>
+                  <input
+                    type="date"
+                    required={formData.paymentMethod === 'credito'}
+                    value={formData.creditDueDate}
+                    onChange={e => setFormData({...formData, creditDueDate: e.target.value})}
+                    className="w-full border border-neutral-300 dark:border-neutral-600 px-3 py-2 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-neutral-700 text-black dark:text-white"
+                  />
+                </div>
+              )}
+            </div>
+
             {/* Botón de ubicación */}
             <div className="space-y-2">
               <button

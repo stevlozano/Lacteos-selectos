@@ -2,12 +2,14 @@
 
 import { useCart } from '@/context/CartContext';
 import { useOrders } from '@/context/OrdersContext';
+import { useNotifications } from '@/context/NotificationsContext';
 import { useState, useEffect } from 'react';
 import { CartItem } from '@/types';
 
 export function MobileCart() {
   const { items, removeFromCart, updateQuantity, total, itemCount, clearCart } = useCart();
   const { addOrder } = useOrders();
+  const { subscribe, isSupported } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -29,6 +31,15 @@ export function MobileCart() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Suscribir cliente a notificaciones (silenciosamente)
+    if (isSupported) {
+      try {
+        await subscribe('customer');
+      } catch (err) {
+        console.log('Notification subscription optional:', err);
+      }
+    }
     
     // Guardar orden en el sistema (await para asegurar que se guarde)
     await addOrder({

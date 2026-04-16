@@ -138,7 +138,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
     
     console.log('Inserting to Supabase:', newOrder);
     
-    const { data, error } = await supabase.from('orders').insert(newOrder).select();
+    const { data, error } = await supabase.from('orders').insert([newOrder]).select();
     if (error) {
       console.error('Error adding order to Supabase:', error);
       throw error;
@@ -155,14 +155,19 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       
       if (adminSubscriptions && adminSubscriptions.length > 0) {
         for (const sub of adminSubscriptions) {
+          const pushSubscription = {
+            endpoint: sub.endpoint,
+            keys: {
+              p256dh: sub.p256dh,
+              auth: sub.auth
+            }
+          };
+          
           await fetch('/api/push/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              subscription: {
-                endpoint: sub.endpoint,
-                keys: { p256dh: sub.p256dh, auth: sub.auth }
-              },
+              subscription: pushSubscription,
               notification: {
                 title: '¡Nuevo Pedido!',
                 body: `Pedido de ${orderData.customerName} - S/${orderData.total.toFixed(2)}`,

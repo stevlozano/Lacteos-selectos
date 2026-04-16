@@ -2,12 +2,14 @@
 
 import { useCart } from '@/context/CartContext';
 import { useOrders } from '@/context/OrdersContext';
+import { useNotifications } from '@/context/NotificationsContext';
 import { useState } from 'react';
 import { CartItem } from '@/types';
 
 export function Cart() {
   const { items, removeFromCart, updateQuantity, total, itemCount, clearCart } = useCart();
   const { addOrder } = useOrders();
+  const { subscribe, isSupported } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,11 +24,20 @@ export function Cart() {
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Suscribir cliente a notificaciones (silenciosamente, sin bloquear)
+    if (isSupported) {
+      try {
+        await subscribe('customer');
+      } catch (err) {
+        console.log('Notification subscription optional:', err);
+      }
+    }
+    
     // Guardar orden en el sistema
-    addOrder({
+    await addOrder({
       items: items.map(item => ({
         id: item.id,
         name: item.name,

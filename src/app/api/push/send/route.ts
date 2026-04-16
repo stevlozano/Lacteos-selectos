@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
 
+// Define error type for web-push
+interface WebPushError extends Error {
+  statusCode?: number;
+  body?: string;
+}
+
 // Configure VAPID keys
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
@@ -45,7 +51,8 @@ export async function POST(request: NextRequest) {
       );
       console.log('[API Push] Notification sent successfully');
       return NextResponse.json({ success: true });
-    } catch (webPushError: any) {
+    } catch (error) {
+      const webPushError = error as WebPushError;
       console.error('[API Push] WebPush error:', webPushError);
       
       // Handle specific error codes
@@ -71,10 +78,11 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
-    console.error('[API Push] General error:', error);
+  } catch (error) {
+    const generalError = error as Error;
+    console.error('[API Push] General error:', generalError);
     return NextResponse.json(
-      { error: 'Failed to send notification', details: error.message },
+      { error: 'Failed to send notification', details: generalError.message },
       { status: 500 }
     );
   }

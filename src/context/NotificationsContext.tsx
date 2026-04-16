@@ -59,8 +59,12 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   // Check for existing subscription
   const checkExistingSubscription = async () => {
     try {
+      console.log('[Notifications] Checking existing subscription...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('[Notifications] SW ready, checking push subscription...');
       const existingSubscription = await registration.pushManager.getSubscription();
+      console.log('[Notifications] Existing subscription:', existingSubscription ? 'FOUND' : 'NONE');
+      
       if (existingSubscription) {
         const sub = {
           endpoint: existingSubscription.endpoint,
@@ -69,11 +73,22 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
             auth: arrayBufferToBase64(existingSubscription.getKey('auth')!)
           }
         };
+        console.log('[Notifications] Setting subscription state:', sub.endpoint.substring(0, 50) + '...');
         setSubscription(sub);
         setIsSubscribed(true);
+        
+        // Verify subscription exists in Supabase
+        const { data: dbSub } = await supabase
+          .from('push_subscriptions')
+          .select('*')
+          .eq('endpoint', sub.endpoint)
+          .single();
+        console.log('[Notifications] Subscription in database:', dbSub ? 'YES' : 'NO');
+      } else {
+        console.log('[Notifications] No active push subscription found in browser');
       }
     } catch (error) {
-      console.error('Error checking subscription:', error);
+      console.error('[Notifications] Error checking subscription:', error);
     }
   };
 

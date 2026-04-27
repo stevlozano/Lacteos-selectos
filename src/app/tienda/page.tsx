@@ -60,12 +60,6 @@ export default function TiendaPage() {
               >
                 Tienda
               </Link>
-              <Link
-                href="/admin/login"
-                className="text-sm font-light text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
-              >
-                Admin
-              </Link>
               <button
                 onClick={toggleTheme}
                 className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"

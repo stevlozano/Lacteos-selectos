@@ -68,7 +68,7 @@ export function MobileCart() {
       
       // Generar mensaje y abrir WhatsApp
       const orderText = generateWhatsAppMessage(items, formData, total);
-      const phoneNumber = '51932398293';
+      const phoneNumber = '926974985';
       const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(orderText)}`;
       
       console.log('[MobileCart] Opening WhatsApp:', url);

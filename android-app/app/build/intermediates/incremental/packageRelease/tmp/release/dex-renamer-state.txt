@@ -1,4 +1,4 @@
-#Wed Apr 15 21:30:41 PET 2026
+#Mon Apr 27 13:06:01 PET 2026
 base.0=/home/codeol/Documentos/lacteos-pedidos/android-app/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 renamed.0=classes.dex
 path.0=classes.dex

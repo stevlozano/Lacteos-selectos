@@ -229,7 +229,7 @@ export default function LandingPage() {
             <div className="order-1 lg:order-2 relative">
               <div className="relative aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900">
                 <Image
-                  src="https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=800&h=1000&fit=crop"
+                  src="/image.png"
                   alt="Productos lácteos artesanales frescos"
                   fill
                   className="object-cover"
@@ -254,7 +254,7 @@ export default function LandingPage() {
             <div className="relative">
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900">
                 <Image
-                  src="https://images.unsplash.com/photo-1563635700-ceb069926b47?w=800&h=600&fit=crop"
+                  src="/Yogurt-general.jpeg"
                   alt="Vaca pastando en pradera verde"
                   fill
                   className="object-cover"

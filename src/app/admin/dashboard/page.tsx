@@ -10,6 +10,7 @@ import { useProducts } from '@/context/ProductsContext';
 import { Product } from '@/types';
 import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon, NotificationsIcon, TruckIcon } from '@/components/Icons';
 import { AdminNotifications } from '@/components/AdminNotifications';
+import { AdminNotificationPrompt } from '@/components/AdminNotificationPrompt';
 import { supabase } from '@/lib/supabase';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
@@ -129,6 +130,9 @@ export default function AdminPage() {
           ))}
         </div>
       </nav>
+
+      {/* Notification Prompt for Admin */}
+      <AdminNotificationPrompt />
     </div>
   );
 }

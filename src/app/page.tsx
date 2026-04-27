@@ -228,8 +228,8 @@ export default function LandingPage() {
               </div>
               {/* Floating badge */}
               <div className="absolute -bottom-4 -left-4 bg-white dark:bg-neutral-900 p-4 rounded-xl shadow-lg border border-neutral-100 dark:border-neutral-800">
-                <p className="text-xs font-light text-neutral-500 dark:text-neutral-400">Entrega gratis</p>
-                <p className="text-sm font-normal">En pedidos mayores a S/50</p>
+                <p className="text-xs font-light text-neutral-500 dark:text-neutral-400">DELIVERY GRATIS</p>
+                <p className="text-sm font-normal">A TODO PUCALLPA</p>
               </div>
             </div>
           </div>

@@ -247,17 +247,7 @@ export default function AdminLogin() {
           </form>
         )}
 
-        <div className="mt-12 text-center">
-          <Link 
-            href="/" 
-            className="text-xs font-light text-neutral-400 hover:text-black dark:hover:text-white transition-colors uppercase tracking-widest"
-          >
-            <span className="material-symbols-outlined text-sm mr-1 align-text-bottom">arrow_back</span>
-            Volver
-          </Link>
-        </div>
-
-        <div className="mt-8 pt-8 border-t border-neutral-100 dark:border-neutral-900 text-center">
+        <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-neutral-900 text-center">
           <p className="text-[10px] font-light text-neutral-300 dark:text-neutral-700 uppercase tracking-widest">
             Solo un administrador • Registro único
           </p>

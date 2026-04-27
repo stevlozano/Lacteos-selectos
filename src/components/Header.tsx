@@ -89,40 +89,19 @@ export function Header() {
                         Cerrar Sesión
                       </button>
                     </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/admin/login"
-                        className="flex items-center gap-3 px-4 py-4 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
-                        onClick={() => setShowMobileMenu(false)}
-                      >
-                        <span className="material-symbols-outlined text-neutral-400">admin_panel_settings</span>
-                        <div>
-                          <p className="font-medium">Panel Admin</p>
-                          <p className="text-xs text-neutral-400">Iniciar sesión</p>
-                        </div>
-                      </Link>
-                    </>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
 
-            {/* Desktop Admin Link - Minimalista */}
-            {isAuthenticated ? (
+            {/* Desktop Admin Link - Solo visible cuando está autenticado */}
+            {isAuthenticated && (
               <Link
                 href="/admin/dashboard"
                 className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
               >
-                <span className="material-symbols-outlined text-base">admin_panel_settings</span>
-                <span className="font-medium">Admin</span>
-              </Link>
-            ) : (
-              <Link
-                href="/admin/login"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-neutral-400 dark:text-neutral-500 text-sm hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
-              >
-                <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+                Admin
               </Link>
             )}
           </div>

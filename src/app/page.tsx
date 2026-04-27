@@ -218,7 +218,7 @@ export default function LandingPage() {
             <div className="order-1 lg:order-2 relative">
               <div className="relative aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-900">
                 <Image
-                  src="/image.png"
+                  src="/selectos.jpeg"
                   alt="Productos lácteos artesanales frescos"
                   fill
                   className="object-cover"

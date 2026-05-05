@@ -17,6 +17,28 @@ type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 type FilterCategory = Category | 'all';
 type View = 'dashboard' | 'products' | 'orders';
 
+// Helper function to format date string correctly without timezone issues
+function formatDateString(dateString: string, options?: { day?: 'numeric' | '2-digit'; month?: 'short' | 'long' | 'numeric'; year?: 'numeric' | '2-digit' }): string {
+  if (!dateString) return '';
+  const [year, month, day] = dateString.split('-');
+  const opts = { day: 'numeric', month: 'short', ...options } as const;
+  
+  const parts: string[] = [];
+  if (opts.day) parts.push(day.replace(/^0/, ''));
+  if (opts.month === 'short') {
+    const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    parts.push(months[parseInt(month) - 1]);
+  } else if (opts.month === 'long') {
+    const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    parts.push(months[parseInt(month) - 1]);
+  } else {
+    parts.push(month);
+  }
+  if (opts.year) parts.push(year);
+  
+  return parts.join(' ');
+}
+
 export default function AdminPage() {
   const { isAuthenticated, logout, user, loading: authLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -981,14 +1003,14 @@ function OrdersView() {
                     {order.paymentMethod === 'credito' && order.creditDueDate && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300">
                         <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                        Pagar: {new Date(order.creditDueDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })}
+                        Pagar: {formatDateString(order.creditDueDate, { day: 'numeric', month: 'short' })}
                       </span>
                     )}
 
                     {order.deliveryDate && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
                         <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                        Entrega: {new Date(order.deliveryDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })}
+                        Entrega: {formatDateString(order.deliveryDate, { day: 'numeric', month: 'short' })}
                       </span>
                     )}
                     
@@ -1113,7 +1135,7 @@ function OrdersView() {
                       <button
                         onClick={() => {
                           const lateFee = order.lateFee || 0;
-                          const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? new Date(order.creditDueDate).toLocaleDateString('es-PE') : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
+                          const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? formatDateString(order.creditDueDate, { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
                           const phone = order.phone.replace(/\D/g, '');
                           const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
                           window.open(url, '_blank');
@@ -1237,7 +1259,7 @@ function OrdersView() {
         onApplyLateFee={async (id) => { await supabase.from('orders').update({ late_fee: 1, late_fee_notified: false }).eq('id', id); }}
         onNotifyLateFee={(order) => {
           const lateFee = order.lateFee || 0;
-          const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? new Date(order.creditDueDate).toLocaleDateString('es-PE') : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
+          const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? formatDateString(order.creditDueDate, { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
           const phone = order.phone.replace(/\D/g, '');
           const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
           window.open(url, '_blank');
@@ -1353,7 +1375,7 @@ function PaymentMethodBadgeV2({ method }: { method: 'yape' | 'efectivo' | 'credi
       border: 'border-green-200 dark:border-green-800',
       text: 'text-green-700 dark:text-green-300',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M15 9-6 6"/><path d="M9 9 6 6"/></svg>
       ),
       label: 'Efectivo'
     },
@@ -1451,13 +1473,13 @@ function OrderDetailsModal({
                 order.lateFee ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 border-red-200' : 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300 border-orange-200'
               }`}>
                 <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                {order.lateFee ? 'Vencido con mora' : `Vence: ${new Date(order.creditDueDate).toLocaleDateString('es-PE')}`}
+                {order.lateFee ? 'Vencido con mora' : `Vence: ${formatDateString(order.creditDueDate, { day: 'numeric', month: 'short', year: 'numeric' })}`}
               </span>
             )}
             {order.deliveryDate && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
                 <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Entrega: {new Date(order.deliveryDate).toLocaleDateString('es-PE')}
+                Entrega: {formatDateString(order.deliveryDate, { day: 'numeric', month: 'short', year: 'numeric' })}
               </span>
             )}
           </div>

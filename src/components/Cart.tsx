@@ -155,10 +155,12 @@ export function Cart() {
     message += `💰 *Total: S/${orderTotal.toFixed(2)}*\n`;
     message += `💳 *Método de pago:* ${customerData.paymentMethod === 'yape' ? 'Yape' : customerData.paymentMethod === 'efectivo' ? 'Efectivo' : 'Crédito/Fiado'}\n`;
     if (customerData.paymentMethod === 'credito' && customerData.creditDueDate) {
-      message += `📅 *Fecha de pago:* ${customerData.creditDueDate}\n`;
+      const [year, month, day] = customerData.creditDueDate.split('-');
+      message += `📅 *Fecha de pago:* ${day}/${month}/${year}\n`;
     }
     if (customerData.deliveryDate) {
-      message += `🚚 *Fecha de entrega:* ${customerData.deliveryDate}\n`;
+      const [year, month, day] = customerData.deliveryDate.split('-');
+      message += `🚚 *Fecha de entrega:* ${day}/${month}/${year}\n`;
     }
     message += `\n✅ Confirmar pedido por favor`;
 

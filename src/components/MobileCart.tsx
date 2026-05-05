@@ -481,10 +481,12 @@ function generateWhatsAppMessage(
   message += `💰 *Total: S/${total.toFixed(2)}*\n`;
   message += `💳 *Método de pago:* ${formData.paymentMethod === 'yape' ? 'Yape' : formData.paymentMethod === 'efectivo' ? 'Efectivo' : 'Crédito/Fiado'}\n`;
   if (formData.paymentMethod === 'credito' && formData.creditDueDate) {
-    message += `📅 *Fecha de pago:* ${formData.creditDueDate}\n`;
+    const [year, month, day] = formData.creditDueDate.split('-');
+    message += `📅 *Fecha de pago:* ${day}/${month}/${year}\n`;
   }
   if (formData.deliveryDate) {
-    message += `🚚 *Fecha de entrega:* ${formData.deliveryDate}\n`;
+    const [year, month, day] = formData.deliveryDate.split('-');
+    message += `🚚 *Fecha de entrega:* ${day}/${month}/${year}\n`;
   }
   message += `\n✅ Confirmar pedido por favor`;
 

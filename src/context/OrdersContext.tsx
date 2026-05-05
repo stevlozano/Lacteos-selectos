@@ -2,30 +2,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
+import { Order } from '@/types';
 
-export interface Order {
-  id: string;
-  items: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-    unit: string;
-  }>;
-  customerName: string;
-  phone: string;
-  address: string;
-  notes?: string;
-  location?: string;
-  total: number;
-  status: 'pending' | 'completed' | 'cancelled';
-  createdAt: string;
-  paymentMethod: 'yape' | 'efectivo' | 'credito';
-  creditDueDate?: string;
-  deliveryDate?: string;
-  lateFee?: number;
-  lateFeeNotified?: boolean;
-}
+export type { Order };
 
 // Database type
 interface DBOrder {
@@ -141,7 +120,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const newOrder = {
+    // Base order data (always included)
+    const baseOrder = {
       id: `order-${Date.now()}`,
       items: orderData.items,
       customer_name: orderData.customerName,
@@ -155,13 +135,32 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       payment_method: orderData.paymentMethod || 'efectivo',
       credit_due_date: orderData.creditDueDate,
       delivery_date: orderData.deliveryDate,
+    };
+
+    // Extended order data with late fee fields (for newer DB schema)
+    const extendedOrder = {
+      ...baseOrder,
       late_fee: lateFee > 0 ? lateFee : null,
       late_fee_notified: false,
     };
     
-    console.log('Inserting to Supabase:', newOrder);
+    console.log('Inserting to Supabase:', extendedOrder);
     
-    const { data, error } = await supabase.from('orders').insert([newOrder]).select();
+    // Try inserting with extended fields first
+    let { data, error } = await supabase.from('orders').insert([extendedOrder]).select();
+    
+    // If error is about unknown columns (late_fee, late_fee_notified), fallback to base order
+    if (error && error.message && (
+      error.message.includes('late_fee') || 
+      error.message.includes('late_fee_notified') ||
+      error.code === '42703' // PostgreSQL column not found error
+    )) {
+      console.warn('Extended columns not found, falling back to base order structure');
+      const result = await supabase.from('orders').insert([baseOrder]).select();
+      data = result.data;
+      error = result.error;
+    }
+    
     if (error) {
       console.error('Error adding order to Supabase:', error);
       throw error;
@@ -205,7 +204,7 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
                 body: `Pedido de ${orderData.customerName} - S/${orderData.total.toFixed(2)}`,
                 tag: 'new-order',
                 requireInteraction: true,
-                data: { orderId: newOrder.id, isAdmin: true }
+                data: { orderId: baseOrder.id, isAdmin: true }
               }
             })
           });

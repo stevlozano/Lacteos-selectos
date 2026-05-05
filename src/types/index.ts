@@ -12,13 +12,22 @@ export interface CartItem extends Product {
   quantity: number;
 }
 
+export interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  unit: string;
+}
+
 export interface Order {
   id: string;
-  items: CartItem[];
+  items: OrderItem[];
   customerName: string;
   phone: string;
   address: string;
   notes?: string;
+  location?: string;
   total: number;
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: string;

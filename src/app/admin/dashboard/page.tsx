@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useTheme } from '@/context/ThemeContext';
 import { useOrders } from '@/context/OrdersContext';
 import { useProducts } from '@/context/ProductsContext';
-import { Product } from '@/types';
+import { Product, Order } from '@/types';
 import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon, NotificationsIcon, TruckIcon } from '@/components/Icons';
 import { AdminNotifications } from '@/components/AdminNotifications';
 import { AdminNotificationPrompt } from '@/components/AdminNotificationPrompt';
@@ -531,6 +531,10 @@ function OrdersView() {
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   const [orderToDeleteName, setOrderToDeleteName] = useState('');
 
+  // Order details modal state
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<typeof orders[0] | null>(null);
+
   // Open delete confirmation modal
   const openDeleteModal = (orderId: string, customerName: string) => {
     setOrderToDelete(orderId);
@@ -919,229 +923,268 @@ function OrdersView() {
       {viewMode === 'list' && (
       <div>
         {filteredOrders.length === 0 ? (
-          <div className="py-16 text-center border border-neutral-100 dark:border-neutral-900">
-            <InboxIcon size={40} className="text-neutral-300 dark:text-neutral-700 mb-4" />
+          <div className="py-16 text-center border border-neutral-100 dark:border-neutral-900 rounded-xl bg-white dark:bg-neutral-900">
+            <InboxIcon size={48} className="text-neutral-300 dark:text-neutral-700 mb-4 mx-auto" />
             <p className="text-sm font-light text-neutral-400 dark:text-neutral-600 uppercase tracking-widest">
               No hay pedidos {filter !== 'all' && 'con este filtro'}
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4">
             {filteredOrders.map((order) => (
               <div 
                 key={order.id} 
-                className="border border-neutral-100 dark:border-neutral-900 p-4 lg:p-6 hover:border-neutral-200 dark:hover:border-neutral-800 transition-all"
+                className="bg-white dark:bg-neutral-900 rounded-xl shadow-sm border border-neutral-100 dark:border-neutral-800 overflow-hidden hover:shadow-md transition-all duration-200"
               >
-                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 lg:gap-4">
-                    <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-neutral-50 dark:bg-neutral-900 flex items-center justify-center flex-shrink-0">
-                      <PersonIcon size={20} className="text-neutral-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-light text-black dark:text-white truncate">{order.customerName}</p>
-                      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 mt-1">{order.phone}</p>
-                      <p className="text-xs font-light text-neutral-400 dark:text-neutral-600 truncate">
-                        {order.address}
-                      </p>
-                      <div className="mt-3 space-y-1">
-                        {order.items.map((item, idx) => (
-                          <p key={idx} className="text-xs font-light text-neutral-500 dark:text-neutral-500">
-                            {item.quantity}x {item.name}
-                          </p>
-                        ))}
+                {/* Header con info principal */}
+                <div className="p-4 lg:p-5">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    {/* Cliente info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center flex-shrink-0">
+                        <PersonIcon size={24} className="text-neutral-500 dark:text-neutral-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-black dark:text-white">{order.customerName}</h3>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-neutral-500 dark:text-neutral-400">{order.phone}</span>
+                          {order.address && (
+                            <span className="text-xs text-neutral-400 dark:text-neutral-500">• {order.address}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
+
+                    {/* Status y Precio */}
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-2xl font-semibold text-black dark:text-white">
+                          S/{order.total.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                          {new Date(order.createdAt).toLocaleDateString('es-PE', {
+                            day: 'numeric',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <StatusBadgeV2 status={order.status} />
+                    </div>
                   </div>
-                  <div className="flex lg:flex-col items-center lg:items-end justify-between lg:justify-start gap-2 lg:gap-1">
-                    <p className="text-lg lg:text-xl font-extralight text-black dark:text-white">
-                      S/{order.total.toFixed(2)}
-                    </p>
-                    <p className="text-xs font-light text-neutral-400 dark:text-neutral-600">
-                      {new Date(order.createdAt).toLocaleDateString('es-PE', {
-                        day: 'numeric',
-                        month: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                    <div className="lg:mt-2">
-                      <StatusBadge status={order.status} />
-                    </div>
-                    {/* Payment Method Badge */}
-                    <div className="flex items-center gap-1 mt-1 flex-wrap">
-                      <PaymentMethodBadge method={order.paymentMethod} />
-                      {order.paymentMethod === 'credito' && order.creditDueDate && (
-                        <span className="text-[10px] text-orange-500 dark:text-orange-400">
-                          (Pagar: {new Date(order.creditDueDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })})
-                        </span>
-                      )}
-                      {/* Late Fee Badge */}
-                      {order.paymentMethod === 'credito' && order.lateFee && order.lateFee > 0 && (
-                        <span className="text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 px-2 py-0.5 rounded font-medium">
-                          +Mora S/{order.lateFee.toFixed(2)}
-                        </span>
-                      )}
-                      {/* Late Fee Warning - Due date passed but no late fee yet */}
-                      {order.paymentMethod === 'credito' && order.creditDueDate && !order.lateFee && order.status === 'completed' && (() => {
-                        const dueDate = new Date(order.creditDueDate);
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
-                        return dueDate < today;
-                      })() && (
-                        <span className="text-[10px] bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 px-2 py-0.5 rounded font-medium">
-                          ⚠️ Vencido - Aplicar mora
-                        </span>
-                      )}
-                    </div>
+
+                  {/* Badges de info */}
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                    <PaymentMethodBadgeV2 method={order.paymentMethod} />
+                    
+                    {order.paymentMethod === 'credito' && order.creditDueDate && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        Pagar: {new Date(order.creditDueDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+
+                    {order.deliveryDate && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Entrega: {new Date(order.deliveryDate).toLocaleDateString('es-PE', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                    
+                    {/* Late Fee Badge */}
+                    {order.paymentMethod === 'credito' && order.lateFee && order.lateFee > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                        +Mora S/{order.lateFee.toFixed(2)}
+                      </span>
+                    )}
+                    
+                    {/* Late Fee Warning */}
+                    {order.paymentMethod === 'credito' && order.creditDueDate && !order.lateFee && order.status === 'completed' && (() => {
+                      const dueDate = new Date(order.creditDueDate);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return dueDate < today;
+                    })() && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300 border border-yellow-200 dark:border-yellow-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                        Vencido
+                      </span>
+                    )}
+
+                    {/* Resumen items */}
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400 ml-auto">
+                      {order.items.length} producto{order.items.length > 1 ? 's' : ''}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2 lg:gap-4 mt-4 lg:mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-900">
-                  {order.status === 'pending' && (
-                    <>
-                      {/* Approve Button */}
-                      <button
-                        onClick={() => approveOrder(order.id)}
-                        className={`flex-1 lg:flex-none py-2 px-4 text-xs font-light transition-colors uppercase tracking-wider flex items-center justify-center gap-2 ${
-                          approvedOrders.has(order.id)
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
-                            : 'text-neutral-500 hover:text-green-600 dark:text-neutral-500 dark:hover:text-green-400'
-                        }`}
-                      >
-                        <NotificationsIcon size={16} />
-                        {approvedOrders.has(order.id) ? 'Aprobado ✓' : 'Aprobar'}
-                      </button>
-
-                      {/* In Delivery Button */}
-                      <button
-                        onClick={() => markAsInDelivery(order.id)}
-                        className={`flex-1 lg:flex-none py-2 px-4 text-xs font-light transition-colors uppercase tracking-wider flex items-center justify-center gap-2 ${
-                          inDeliveryOrders.has(order.id)
-                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-                            : 'text-neutral-500 hover:text-blue-600 dark:text-neutral-500 dark:hover:text-blue-400'
-                        }`}
-                      >
-                        <TruckIcon size={16} />
-                        {inDeliveryOrders.has(order.id) ? 'En Camino ✓' : 'En Camino'}
-                      </button>
-
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'completed')}
-                        className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-500 hover:text-black dark:text-neutral-500 dark:hover:text-white transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
-                      >
-                        <CheckIcon size={16} />
-                        Completar
-                      </button>
-                      <button
-                        onClick={() => updateOrderStatus(order.id, 'cancelled')}
-                        className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-400 hover:text-red-600 dark:text-neutral-600 dark:hover:text-red-400 transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
-                      >
-                        <CloseIcon size={16} />
-                        Cancelar
-                      </button>
-                    </>
-                  )}
-                  {order.status !== 'pending' && (
-                    <button
-                      onClick={() => updateOrderStatus(order.id, 'pending')}
-                      className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-400 hover:text-black dark:text-neutral-600 dark:hover:text-white transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
-                    >
-                      <RefreshIcon size={16} />
-                      Marcar Pendiente
-                    </button>
-                  )}
-                  <button
-                    onClick={() => openDeleteModal(order.id, order.customerName)}
-                    className="py-2 px-4 text-neutral-400 hover:text-red-600 dark:text-neutral-600 dark:hover:text-red-400 transition-colors"
-                  >
-                    <DeleteIcon size={16} />
-                  </button>
-
-                  {/* Send Late Fee WhatsApp Notification */}
-                  {order.paymentMethod === 'credito' && order.lateFee && order.lateFee > 0 && order.phone && (
+                {/* Acciones */}
+                <div className="px-4 lg:px-5 py-3 bg-neutral-50 dark:bg-neutral-800/50 border-t border-neutral-100 dark:border-neutral-800">
+                  <div className="flex flex-wrap items-center gap-2">
+                    
+                    {/* Ver Detalles */}
                     <button
                       onClick={() => {
-                        const lateFee = order.lateFee || 0;
-                        const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? new Date(order.creditDueDate).toLocaleDateString('es-PE') : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
-                        const phone = order.phone.replace(/\D/g, '');
-                        const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-                        window.open(url, '_blank');
+                        setSelectedOrder(order);
+                        setDetailsModalOpen(true);
                       }}
-                      className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors uppercase tracking-wider flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 bg-white dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-600 transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.72 1.46h.006c6.553 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-                      Notificar Mora
+                      <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      Ver Detalles
                     </button>
-                  )}
 
-                  {/* Apply Late Fee Button - For orders that are completed and past due */}
-                  {order.paymentMethod === 'credito' && order.creditDueDate && !order.lateFee && order.status === 'completed' && (() => {
-                    const dueDate = new Date(order.creditDueDate);
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    return dueDate < today;
-                  })() && (
-                    <button
-                      onClick={async () => {
-                        await supabase.from('orders').update({ late_fee: 1, late_fee_notified: false }).eq('id', order.id);
-                      }}
-                      className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-orange-600 hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300 transition-colors uppercase tracking-wider flex items-center justify-center gap-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                      Aplicar Mora S/1.00
-                    </button>
-                  )}
+                    {order.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => approveOrder(order.id)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                            approvedOrders.has(order.id)
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-200 dark:border-green-800'
+                              : 'bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-600 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300 hover:border-green-200 dark:hover:border-green-800'
+                          }`}
+                        >
+                          <NotificationsIcon size={14} />
+                          {approvedOrders.has(order.id) ? 'Aprobado ✓' : 'Aprobar'}
+                        </button>
 
-                  {/* Edit Payment Button */}
-                  {editingPayment === order.id ? (
-                    <div className="flex-1 flex flex-wrap gap-2 items-center">
-                      <select
-                        value={newPaymentMethod}
-                        onChange={(e) => setNewPaymentMethod(e.target.value as 'yape' | 'efectivo' | 'credito')}
-                        className="text-xs border border-neutral-300 dark:border-neutral-600 px-2 py-1 bg-white dark:bg-neutral-700"
+                        <button
+                          onClick={() => markAsInDelivery(order.id)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                            inDeliveryOrders.has(order.id)
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                              : 'bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-300 hover:border-blue-200 dark:hover:border-blue-800'
+                          }`}
+                        >
+                          <TruckIcon size={14} />
+                          {inDeliveryOrders.has(order.id) ? 'En Camino ✓' : 'En Camino'}
+                        </button>
+
+                        <button
+                          onClick={() => updateOrderStatus(order.id, 'completed')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-600 rounded-lg hover:bg-black dark:hover:bg-white hover:text-white dark:hover:text-black hover:border-black dark:hover:border-white transition-all"
+                        >
+                          <CheckIcon size={14} />
+                          Completar
+                        </button>
+
+                        <button
+                          onClick={() => updateOrderStatus(order.id, 'cancelled')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-700 dark:hover:text-red-300 hover:border-red-200 dark:hover:border-red-800 transition-all"
+                        >
+                          <CloseIcon size={14} />
+                          Cancelar
+                        </button>
+                      </>
+                    )}
+
+                    {order.status !== 'pending' && (
+                      <button
+                        onClick={() => updateOrderStatus(order.id, 'pending')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 border border-neutral-200 dark:border-neutral-600 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-600 transition-colors"
                       >
-                        <option value="yape">Yape</option>
-                        <option value="efectivo">Efectivo</option>
-                        <option value="credito">Fiado</option>
-                      </select>
-                      {newPaymentMethod === 'credito' && (
-                        <input
-                          type="date"
-                          value={newCreditDueDate}
-                          onChange={(e) => setNewCreditDueDate(e.target.value)}
-                          className="text-xs border border-neutral-300 dark:border-neutral-600 px-2 py-1"
-                          placeholder="Fecha de pago"
-                        />
-                      )}
+                        <RefreshIcon size={14} />
+                        Marcar Pendiente
+                      </button>
+                    )}
+
+                    {/* Apply Late Fee */}
+                    {order.paymentMethod === 'credito' && order.creditDueDate && !order.lateFee && order.status === 'completed' && (() => {
+                      const dueDate = new Date(order.creditDueDate);
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return dueDate < today;
+                    })() && (
                       <button
                         onClick={async () => {
-                          await updatePaymentMethod(order.id, newPaymentMethod, newPaymentMethod === 'credito' ? newCreditDueDate : undefined);
-                          setEditingPayment(null);
+                          await supabase.from('orders').update({ late_fee: 1, late_fee_notified: false }).eq('id', order.id);
                         }}
-                        className="text-xs px-2 py-1 bg-black dark:bg-white text-white dark:text-black"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
                       >
-                        Guardar
+                        <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        Aplicar Mora S/1.00
                       </button>
+                    )}
+
+                    {/* Notificar Mora WhatsApp */}
+                    {order.paymentMethod === 'credito' && order.lateFee && order.lateFee > 0 && order.phone && (
                       <button
-                        onClick={() => setEditingPayment(null)}
-                        className="text-xs px-2 py-1 border border-neutral-300 dark:border-neutral-600"
+                        onClick={() => {
+                          const lateFee = order.lateFee || 0;
+                          const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? new Date(order.creditDueDate).toLocaleDateString('es-PE') : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
+                          const phone = order.phone.replace(/\D/g, '');
+                          const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                          window.open(url, '_blank');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
                       >
-                        Cancelar
+                        <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.72 1.46h.006c6.553 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        Notificar por WhatsApp
                       </button>
-                    </div>
-                  ) : (
+                    )}
+
+                    <div className="flex-1"></div>
+
+                    {/* Editar Pago */}
+                    {editingPayment === order.id ? (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={newPaymentMethod}
+                          onChange={(e) => setNewPaymentMethod(e.target.value as 'yape' | 'efectivo' | 'credito')}
+                          className="text-xs border border-neutral-300 dark:border-neutral-600 px-2 py-1 rounded bg-white dark:bg-neutral-700"
+                        >
+                          <option value="yape">Yape</option>
+                          <option value="efectivo">Efectivo</option>
+                          <option value="credito">Fiado</option>
+                        </select>
+                        {newPaymentMethod === 'credito' && (
+                          <input
+                            type="date"
+                            value={newCreditDueDate}
+                            onChange={(e) => setNewCreditDueDate(e.target.value)}
+                            className="text-xs border border-neutral-300 dark:border-neutral-600 px-2 py-1 rounded bg-white dark:bg-neutral-700"
+                          />
+                        )}
+                        <button
+                          onClick={async () => {
+                            await updatePaymentMethod(order.id, newPaymentMethod, newPaymentMethod === 'credito' ? newCreditDueDate : undefined);
+                            setEditingPayment(null);
+                          }}
+                          className="text-xs px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded"
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          onClick={() => setEditingPayment(null)}
+                          className="text-xs px-2 py-1 border border-neutral-300 dark:border-neutral-600 rounded"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingPayment(order.id);
+                          setNewPaymentMethod(order.paymentMethod);
+                          setNewCreditDueDate(order.creditDueDate || '');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+                      >
+                        <EditIcon size={14} />
+                        Editar Pago
+                      </button>
+                    )}
+
+                    {/* Eliminar */}
                     <button
-                      onClick={() => {
-                        setEditingPayment(order.id);
-                        setNewPaymentMethod(order.paymentMethod);
-                        setNewCreditDueDate(order.creditDueDate || '');
-                      }}
-                      className="flex-1 lg:flex-none py-2 px-4 text-xs font-light text-neutral-400 hover:text-blue-600 dark:text-neutral-600 dark:hover:text-blue-400 transition-colors uppercase tracking-wider flex items-center justify-center gap-2"
+                      onClick={() => openDeleteModal(order.id, order.customerName)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-neutral-400 hover:text-red-600 dark:text-neutral-500 dark:hover:text-red-400 transition-colors"
                     >
-                      <EditIcon size={16} />
-                      Editar Pago
+                      <DeleteIcon size={14} />
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -1184,6 +1227,22 @@ function OrdersView() {
           </div>
         </div>
       )}
+
+      {/* Order Details Modal */}
+      <OrderDetailsModal
+        order={selectedOrder}
+        isOpen={detailsModalOpen}
+        onClose={() => { setDetailsModalOpen(false); setSelectedOrder(null); }}
+        onUpdateStatus={updateOrderStatus}
+        onApplyLateFee={async (id) => { await supabase.from('orders').update({ late_fee: 1, late_fee_notified: false }).eq('id', id); }}
+        onNotifyLateFee={(order) => {
+          const lateFee = order.lateFee || 0;
+          const message = `Hola ${order.customerName}, te recordamos que tu pedido fiado tiene una mora de S/${lateFee.toFixed(2)} por pago atrasado. Fecha de vencimiento: ${order.creditDueDate ? new Date(order.creditDueDate).toLocaleDateString('es-PE') : 'N/A'}. Total a pagar: S/${(order.total + lateFee).toFixed(2)}`;
+          const phone = order.phone.replace(/\D/g, '');
+          const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+          window.open(url, '_blank');
+        }}
+      />
     </div>
   );
 }
@@ -1241,6 +1300,298 @@ function PaymentMethodBadge({ method }: { method: 'yape' | 'efectivo' | 'credito
     <span className={`px-2 py-0.5 text-[10px] font-light tracking-wider uppercase rounded ${styles[method]}`}>
       {labels[method]}
     </span>
+  );
+}
+
+// New improved badge components
+function StatusBadgeV2({ status }: { status: string }) {
+  const config = {
+    pending: {
+      bg: 'bg-amber-50 dark:bg-amber-900/20',
+      border: 'border-amber-200 dark:border-amber-800',
+      text: 'text-amber-700 dark:text-amber-300',
+      dot: 'bg-amber-500',
+      label: 'Pendiente'
+    },
+    completed: {
+      bg: 'bg-green-50 dark:bg-green-900/20',
+      border: 'border-green-200 dark:border-green-800',
+      text: 'text-green-700 dark:text-green-300',
+      dot: 'bg-green-500',
+      label: 'Completado'
+    },
+    cancelled: {
+      bg: 'bg-red-50 dark:bg-red-900/20',
+      border: 'border-red-200 dark:border-red-800',
+      text: 'text-red-700 dark:text-red-300',
+      dot: 'bg-red-500',
+      label: 'Cancelado'
+    }
+  };
+  const style = config[status as keyof typeof config];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${style.bg} ${style.border} ${style.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`}></span>
+      {style.label}
+    </span>
+  );
+}
+
+function PaymentMethodBadgeV2({ method }: { method: 'yape' | 'efectivo' | 'credito' }) {
+  const config = {
+    yape: {
+      bg: 'bg-purple-50 dark:bg-purple-900/20',
+      border: 'border-purple-200 dark:border-purple-800',
+      text: 'text-purple-700 dark:text-purple-300',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><rect width={20} height={14} x={2} y={5} rx={2}/><path d="M2 10h20"/></svg>
+      ),
+      label: 'Yape'
+    },
+    efectivo: {
+      bg: 'bg-green-50 dark:bg-green-900/20',
+      border: 'border-green-200 dark:border-green-800',
+      text: 'text-green-700 dark:text-green-300',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+      ),
+      label: 'Efectivo'
+    },
+    credito: {
+      bg: 'bg-orange-50 dark:bg-orange-900/20',
+      border: 'border-orange-200 dark:border-orange-800',
+      text: 'text-orange-700 dark:text-orange-300',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+      ),
+      label: 'Fiado'
+    }
+  };
+  const style = config[method];
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${style.bg} ${style.border} ${style.text}`}>
+      {style.icon}
+      {style.label}
+    </span>
+  );
+}
+
+// Order Details Modal Component
+function OrderDetailsModal({ 
+  order, 
+  isOpen, 
+  onClose,
+  onUpdateStatus,
+  onApplyLateFee,
+  onNotifyLateFee
+}: { 
+  order: Order | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onUpdateStatus: (id: string, status: 'pending' | 'completed' | 'cancelled') => void;
+  onApplyLateFee: (id: string) => void;
+  onNotifyLateFee: (order: Order) => void;
+}) {
+  if (!isOpen || !order) return null;
+
+  const totalWithLateFee = order.total + (order.lateFee || 0);
+  const isLateFeeApplicable = order.paymentMethod === 'credito' && order.creditDueDate && !order.lateFee && order.status === 'completed' && (() => {
+    const dueDate = new Date(order.creditDueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate < today;
+  })();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-auto">
+        {/* Header */}
+        <div className="sticky top-0 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800 p-4 lg:p-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-black dark:text-white">Detalles del Pedido</h2>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">ID: {order.id}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
+          >
+            <CloseIcon size={20} />
+          </button>
+        </div>
+
+        <div className="p-4 lg:p-6 space-y-6">
+          {/* Cliente */}
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-700 flex items-center justify-center flex-shrink-0">
+              <PersonIcon size={28} className="text-neutral-500 dark:text-neutral-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg text-black dark:text-white">{order.customerName}</h3>
+              <div className="flex flex-wrap items-center gap-3 mt-1">
+                <a href={`tel:${order.phone}`} className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  {order.phone}
+                </a>
+              </div>
+              {order.address && (
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2 flex items-start gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="mt-0.5 flex-shrink-0"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  {order.address}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Status y Pago */}
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadgeV2 status={order.status} />
+            <PaymentMethodBadgeV2 method={order.paymentMethod} />
+            {order.paymentMethod === 'credito' && order.creditDueDate && (
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                order.lateFee ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300 border-red-200' : 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300 border-orange-200'
+              }`}>
+                <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                {order.lateFee ? 'Vencido con mora' : `Vence: ${new Date(order.creditDueDate).toLocaleDateString('es-PE')}`}
+              </span>
+            )}
+            {order.deliveryDate && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Entrega: {new Date(order.deliveryDate).toLocaleDateString('es-PE')}
+              </span>
+            )}
+          </div>
+
+          {/* Productos */}
+          <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-4">
+            <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              Productos ({order.items.length})
+            </h4>
+            <div className="space-y-2">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-700 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                      {item.quantity}
+                    </span>
+                    <span className="text-sm text-neutral-700 dark:text-neutral-300">{item.name}</span>
+                  </div>
+                  <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                    S/{(item.price * item.quantity).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Totales */}
+          <div className="border-t border-neutral-100 dark:border-neutral-800 pt-4">
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-neutral-500 dark:text-neutral-400">Subtotal</span>
+                <span className="text-neutral-700 dark:text-neutral-300">S/{order.total.toFixed(2)}</span>
+              </div>
+              {order.lateFee && order.lateFee > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                    Mora por atraso
+                  </span>
+                  <span className="text-red-600 dark:text-red-400 font-medium">+S/{order.lateFee.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-semibold pt-2 border-t border-neutral-100 dark:border-neutral-800">
+                <span className="text-black dark:text-white">Total a pagar</span>
+                <span className="text-black dark:text-white">S/{totalWithLateFee.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Notas */}
+          {order.notes && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+              <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium mb-1">Notas:</p>
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">{order.notes}</p>
+            </div>
+          )}
+
+          {/* Ubicación */}
+          {order.location && (
+            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p className="text-xs text-blue-700 dark:text-blue-300 font-medium mb-1 flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Ubicación GPS:
+              </p>
+              <a 
+                href={order.location} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline break-all"
+              >
+                {order.location}
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="sticky bottom-0 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800 p-4 lg:p-6 space-y-3">
+          {/* Primary Actions */}
+          <div className="flex flex-wrap gap-2">
+            {order.status === 'pending' && (
+              <>
+                <button
+                  onClick={() => { onUpdateStatus(order.id, 'completed'); onClose(); }}
+                  className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black dark:bg-white text-white dark:text-black text-sm font-medium rounded-lg hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+                >
+                  <CheckIcon size={16} />
+                  Completar Pedido
+                </button>
+                <button
+                  onClick={() => { onUpdateStatus(order.id, 'cancelled'); onClose(); }}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 text-sm font-medium rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  <CloseIcon size={16} />
+                  Cancelar
+                </button>
+              </>
+            )}
+            {order.status !== 'pending' && (
+              <button
+                onClick={() => { onUpdateStatus(order.id, 'pending'); onClose(); }}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-sm font-medium rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+              >
+                <RefreshIcon size={16} />
+                Marcar como Pendiente
+              </button>
+            )}
+          </div>
+
+          {/* Secondary Actions - Late Fee */}
+          {isLateFeeApplicable && (
+            <button
+              onClick={() => { onApplyLateFee(order.id); onClose(); }}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 text-sm font-medium rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Aplicar Mora S/1.00
+            </button>
+          )}
+
+          {/* WhatsApp Notification */}
+          {order.paymentMethod === 'credito' && order.lateFee && order.lateFee > 0 && order.phone && (
+            <button
+              onClick={() => { onNotifyLateFee(order); onClose(); }}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800 text-sm font-medium rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.72 1.46h.006c6.553 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Notificar Mora por WhatsApp
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

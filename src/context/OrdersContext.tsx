@@ -22,6 +22,9 @@ export interface Order {
   createdAt: string;
   paymentMethod: 'yape' | 'efectivo' | 'credito';
   creditDueDate?: string;
+  deliveryDate?: string;
+  lateFee?: number;
+  lateFeeNotified?: boolean;
 }
 
 // Database type
@@ -44,6 +47,9 @@ interface DBOrder {
   created_at: string;
   payment_method: 'yape' | 'efectivo' | 'credito';
   credit_due_date?: string | null;
+  delivery_date?: string | null;
+  late_fee?: number | null;
+  late_fee_notified?: boolean | null;
 }
 
 const toOrder = (dbOrder: DBOrder): Order => ({
@@ -59,6 +65,9 @@ const toOrder = (dbOrder: DBOrder): Order => ({
   createdAt: dbOrder.created_at,
   paymentMethod: dbOrder.payment_method || 'efectivo',
   creditDueDate: dbOrder.credit_due_date ? dbOrder.credit_due_date : undefined,
+  deliveryDate: dbOrder.delivery_date ? dbOrder.delivery_date : undefined,
+  lateFee: dbOrder.late_fee || undefined,
+  lateFeeNotified: dbOrder.late_fee_notified || undefined,
 });
 
 interface OrdersContextType {
@@ -121,6 +130,17 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
   const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt' | 'status'>) => {
     console.log('Adding order:', orderData);
     
+    // Calculate late fee for credit orders if due date has passed
+    let lateFee = 0;
+    if (orderData.paymentMethod === 'credito' && orderData.creditDueDate) {
+      const dueDate = new Date(orderData.creditDueDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (dueDate < today) {
+        lateFee = 1; // S/1.00 late fee
+      }
+    }
+
     const newOrder = {
       id: `order-${Date.now()}`,
       items: orderData.items,
@@ -134,6 +154,9 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString(),
       payment_method: orderData.paymentMethod || 'efectivo',
       credit_due_date: orderData.creditDueDate,
+      delivery_date: orderData.deliveryDate,
+      late_fee: lateFee > 0 ? lateFee : null,
+      late_fee_notified: false,
     };
     
     console.log('Inserting to Supabase:', newOrder);

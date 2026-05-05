@@ -24,4 +24,7 @@ export interface Order {
   createdAt: string;
   paymentMethod: 'yape' | 'efectivo' | 'credito';
   creditDueDate?: string;
+  deliveryDate?: string;
+  lateFee?: number;
+  lateFeeNotified?: boolean;
 }

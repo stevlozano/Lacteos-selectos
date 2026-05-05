@@ -19,7 +19,8 @@ export function Cart() {
     notes: '',
     location: '',
     paymentMethod: 'efectivo' as 'yape' | 'efectivo' | 'credito',
-    creditDueDate: ''
+    creditDueDate: '',
+    deliveryDate: ''
   });
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export function Cart() {
       total,
       paymentMethod: formData.paymentMethod,
       creditDueDate: formData.paymentMethod === 'credito' ? formData.creditDueDate : undefined,
+      deliveryDate: formData.deliveryDate || undefined,
     });
     
     const orderText = generateWhatsAppMessage(items, formData, total);
@@ -71,7 +73,8 @@ export function Cart() {
       notes: '',
       location: '',
       paymentMethod: 'efectivo',
-      creditDueDate: ''
+      creditDueDate: '',
+      deliveryDate: ''
     });
     setShowForm(false);
     setIsOpen(false);
@@ -115,7 +118,7 @@ export function Cart() {
 
   const generateWhatsAppMessage = (
     cartItems: CartItem[],
-    customerData: { customerName: string; phone: string; address: string; notes: string; location?: string; paymentMethod: 'yape' | 'efectivo' | 'credito'; creditDueDate?: string },
+    customerData: { customerName: string; phone: string; address: string; notes: string; location?: string; paymentMethod: 'yape' | 'efectivo' | 'credito'; creditDueDate?: string; deliveryDate?: string },
     orderTotal: number
   ): string => {
     const date = new Date().toLocaleDateString('es-PE', { 
@@ -153,6 +156,9 @@ export function Cart() {
     message += `💳 *Método de pago:* ${customerData.paymentMethod === 'yape' ? 'Yape' : customerData.paymentMethod === 'efectivo' ? 'Efectivo' : 'Crédito/Fiado'}\n`;
     if (customerData.paymentMethod === 'credito' && customerData.creditDueDate) {
       message += `📅 *Fecha de pago:* ${customerData.creditDueDate}\n`;
+    }
+    if (customerData.deliveryDate) {
+      message += `🚚 *Fecha de entrega:* ${customerData.deliveryDate}\n`;
     }
     message += `\n✅ Confirmar pedido por favor`;
 
@@ -287,7 +293,15 @@ export function Cart() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFormData({...formData, paymentMethod: 'credito'})}
+                  onClick={() => {
+                    // Calcular fecha de pago automática (hoy + 7 días)
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const dueDate = new Date(today);
+                    dueDate.setDate(dueDate.getDate() + 7);
+                    const formattedDueDate = dueDate.toISOString().split('T')[0];
+                    setFormData({...formData, paymentMethod: 'credito', creditDueDate: formattedDueDate});
+                  }}
                   className={`py-2 px-3 text-sm border transition-all ${
                     formData.paymentMethod === 'credito'
                       ? 'bg-orange-100 border-orange-500 text-orange-700 dark:bg-orange-900/30 dark:border-orange-400 dark:text-orange-300'
@@ -298,11 +312,11 @@ export function Cart() {
                 </button>
               </div>
 
-              {/* Fecha de pago para crédito */}
+              {/* Fecha de pago para crédito - ahora es solo informativa ya que se calcula automáticamente */}
               {formData.paymentMethod === 'credito' && (
                 <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-600">
                   <label className="text-xs text-neutral-500 dark:text-neutral-400 block mb-1">
-                    Fecha de pago
+                    Fecha límite de pago (7 días)
                   </label>
                   <input
                     type="date"
@@ -311,8 +325,26 @@ export function Cart() {
                     onChange={e => setFormData({...formData, creditDueDate: e.target.value})}
                     className="w-full border border-neutral-300 dark:border-neutral-600 px-3 py-2 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-neutral-700 text-black dark:text-white"
                   />
+                  <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-1">
+                    ⚠️ Si pasas esta fecha, se agregará S/1.00 de mora automáticamente
+                  </p>
                 </div>
               )}
+            </div>
+
+            {/* Selector de fecha de entrega */}
+            <div className="border border-neutral-300 dark:border-neutral-600 p-3 bg-white dark:bg-neutral-700">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-2 uppercase tracking-wider">Fecha de entrega</p>
+              <input
+                type="date"
+                value={formData.deliveryDate}
+                onChange={e => setFormData({...formData, deliveryDate: e.target.value})}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full border border-neutral-300 dark:border-neutral-600 px-3 py-2 text-sm focus:border-black dark:focus:border-white focus:outline-none bg-white dark:bg-neutral-700 text-black dark:text-white"
+              />
+              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+                ¿Cuándo quieres recibir tu pedido?
+              </p>
             </div>
 
             {/* Opciones de ubicación */}

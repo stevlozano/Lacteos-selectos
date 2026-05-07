@@ -9,6 +9,23 @@ import { useProducts } from '@/context/ProductsContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useCustomerAuth } from '@/context/CustomerAuthContext';
 
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  unit: string;
+}
+
+interface Order {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  status: string;
+  payment_method: string;
+  created_at: string;
+}
+
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 
 const categories: { id: Category | 'all'; label: string }[] = [
@@ -22,6 +39,9 @@ const categories: { id: Category | 'all'; label: string }[] = [
 export default function TiendaPage() {
   const [activeCategory, setActiveCategory] = useState<Category | 'all'>('all');
   const [mounted, setMounted] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const { products } = useProducts();
   const { theme, toggleTheme } = useTheme();
   const { customer, isAuthenticated } = useCustomerAuth();
@@ -30,6 +50,28 @@ export default function TiendaPage() {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchOrders = async () => {
+    if (!customer?.email) return;
+    
+    setOrdersLoading(true);
+    try {
+      const response = await fetch(`/api/customer/orders?email=${encodeURIComponent(customer.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data.orders || []);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const openHistory = () => {
+    setShowHistory(true);
+    fetchOrders();
+  };
 
   const filteredProducts = activeCategory === 'all'
     ? products
@@ -62,6 +104,16 @@ export default function TiendaPage() {
               >
                 Tienda
               </Link>
+              {isAuthenticated && (
+                <button
+                  onClick={openHistory}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-sm font-light text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">receipt_long</span>
+                  <span className="hidden sm:inline">Pedidos</span>
+                </button>
+              )}
+
               {isAuthenticated ? (
                 <Link
                   href="/customer/profile"
@@ -189,6 +241,112 @@ export default function TiendaPage() {
       <div className="hidden lg:block fixed bottom-6 right-6 z-30">
         <Cart />
       </div>
+
+      {/* Order History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-black w-full max-w-2xl max-h-[80vh] overflow-hidden rounded-2xl border border-neutral-100 dark:border-neutral-900 shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-neutral-100 dark:border-neutral-900">
+              <h2 className="text-xl font-light text-black dark:text-white flex items-center gap-2">
+                <span className="material-symbols-outlined">receipt_long</span>
+                Mis Pedidos
+              </h2>
+              <button
+                onClick={() => setShowHistory(false)}
+                className="p-2 text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {ordersLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="relative">
+                    <div className="w-8 h-8 border-2 border-neutral-200 dark:border-neutral-800 rounded-full"></div>
+                    <div className="absolute top-0 left-0 w-8 h-8 border-2 border-black dark:border-white rounded-full border-t-transparent animate-spin"></div>
+                  </div>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-12">
+                  <span className="material-symbols-outlined text-4xl text-neutral-300 dark:text-neutral-700 mb-4">inbox</span>
+                  <p className="text-sm text-neutral-400 dark:text-neutral-600">
+                    No tienes pedidos registrados
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="border border-neutral-100 dark:border-neutral-800 p-4 rounded-xl hover:border-neutral-200 dark:hover:border-neutral-700 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-black dark:text-white">
+                          Pedido #{order.id.substring(0, 8)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          order.status === 'completed' 
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                            : order.status === 'pending'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
+                            : order.status === 'cancelled'
+                            ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
+                        }`}>
+                          {order.status === 'completed' ? 'Completado'
+                            : order.status === 'pending' ? 'Pendiente'
+                            : order.status === 'cancelled' ? 'Cancelado'
+                            : order.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-400 dark:text-neutral-600 mb-2">
+                        {new Date(order.created_at).toLocaleDateString('es-PE', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      <div className="space-y-1 mb-3">
+                        {order.items.slice(0, 3).map((item: OrderItem, idx: number) => (
+                          <p key={idx} className="text-sm text-neutral-600 dark:text-neutral-400">
+                            • {item.name} x {item.quantity}
+                          </p>
+                        ))}
+                        {order.items.length > 3 && (
+                          <p className="text-xs text-neutral-400 dark:text-neutral-600">
+                            + {order.items.length - 3} productos más
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                        <span className="text-sm font-medium text-black dark:text-white">
+                          Total: S/{order.total.toFixed(2)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          order.payment_method === 'yape'
+                            ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+                            : order.payment_method === 'credito'
+                            ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                            : 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                        }`}>
+                          {order.payment_method === 'yape' ? 'Yape'
+                            : order.payment_method === 'credito' ? 'Crédito'
+                            : 'Efectivo'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

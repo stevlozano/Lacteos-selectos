@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useTheme } from '@/context/ThemeContext';
 import { useOrders } from '@/context/OrdersContext';
 import { useProducts } from '@/context/ProductsContext';
+import { useNotifications } from '@/context/NotificationsContext';
 import { Product, Order } from '@/types';
 import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon, NotificationsIcon, TruckIcon } from '@/components/Icons';
 import { AdminCustomersView } from '@/components/AdminCustomersView';
@@ -43,6 +44,7 @@ function formatDateString(dateString: string, options?: { day?: 'numeric' | '2-d
 export default function AdminPage() {
   const { isAuthenticated, logout, user, loading: authLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isSupported, isSubscribed, permission } = useNotifications();
   const router = useRouter();
   const [currentView, setCurrentView] = useState<View>('dashboard');
 
@@ -90,6 +92,36 @@ export default function AdminPage() {
           </p>
           <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-900">
             <p className="text-sm font-light text-neutral-600 dark:text-neutral-400">{user?.email}</p>
+            
+            {/* Notification Status */}
+            <div className="mt-4 p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-sm">notifications</span>
+                <span className="text-xs font-light text-neutral-600 dark:text-neutral-400">Notificaciones</span>
+              </div>
+              {isSupported ? (
+                <div className="space-y-1">
+                  {isSubscribed ? (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span className="text-xs text-green-600 dark:text-green-400">Activadas</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      <span className="text-xs text-yellow-600 dark:text-yellow-400">
+                        {permission === 'denied' ? 'Denegadas' : 'No activadas'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="text-xs text-red-600 dark:text-red-400">No soportadas</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

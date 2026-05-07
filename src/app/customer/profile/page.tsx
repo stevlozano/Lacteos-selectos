@@ -343,7 +343,7 @@ export default function CustomerProfile() {
                 <div className="flex justify-between">
                   <span className="text-neutral-400 dark:text-neutral-600">Miembro desde</span>
                   <span className="text-black dark:text-white">
-                    {new Date(customer.created_at).toLocaleDateString('es-PE', {
+                    {new Date(customer.created_at || new Date()).toLocaleDateString('es-PE', {
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric'

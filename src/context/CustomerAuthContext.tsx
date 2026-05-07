@@ -9,6 +9,10 @@ interface Customer {
   name?: string;
   phone?: string;
   address?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  last_login?: string;
   notification_preferences: {
     order_updates: boolean;
     credit_status: boolean;

@@ -73,6 +73,10 @@ export default function TiendaPage() {
     fetchOrders();
   };
 
+  const handlePromocionesClick = () => {
+    alert('Las promociones estarán disponibles en la próxima versión. ¡Mantente atento a nuestras ofertas especiales!');
+  };
+
   const filteredProducts = activeCategory === 'all'
     ? products
     : products.filter(p => p.category === activeCategory);
@@ -103,8 +107,8 @@ export default function TiendaPage() {
             <div className="flex items-center gap-2">
               {/* Promociones (placeholder) */}
               <button
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/20 text-sm font-light text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800"
-                disabled
+                onClick={handlePromocionesClick}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/20 text-sm font-light text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 hover:from-orange-200 hover:to-yellow-200 dark:hover:from-orange-900/30 dark:hover:to-yellow-900/30 transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">local_offer</span>
                 <span className="hidden sm:inline">Promociones</span>

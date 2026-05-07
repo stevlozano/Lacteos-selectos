@@ -12,6 +12,8 @@ import { OrdersProvider } from '@/context/OrdersContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
 import { PWAInstaller } from '@/components/PWAInstaller';
 import { UpdateNotification } from '@/components/UpdateNotification';
+import { CustomerPermissionPrompt } from '@/components/CustomerPermissionPrompt';
+import { WelcomeMessage } from '@/components/WelcomeMessage';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,6 +63,8 @@ export default function RootLayout({
                         {children}
                         <PWAInstaller />
                         <UpdateNotification />
+                        <WelcomeMessage />
+                        <CustomerPermissionPrompt />
                       </CartProvider>
                     </NotificationsProvider>
                   </OrdersProvider>

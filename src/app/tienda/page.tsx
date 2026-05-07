@@ -7,6 +7,7 @@ import { Cart } from '@/components/Cart';
 import { MobileCart } from '@/components/MobileCart';
 import { useProducts } from '@/context/ProductsContext';
 import { useTheme } from '@/context/ThemeContext';
+import { useCustomerAuth } from '@/context/CustomerAuthContext';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 
@@ -23,6 +24,7 @@ export default function TiendaPage() {
   const [mounted, setMounted] = useState(false);
   const { products } = useProducts();
   const { theme, toggleTheme } = useTheme();
+  const { customer, isAuthenticated } = useCustomerAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
@@ -60,6 +62,24 @@ export default function TiendaPage() {
               >
                 Tienda
               </Link>
+              {isAuthenticated ? (
+                <Link
+                  href="/customer/profile"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-sm font-light text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">person</span>
+                  <span className="hidden sm:inline">{customer?.name || 'Mi Cuenta'}</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/customer/login"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black dark:bg-white text-sm font-light text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">login</span>
+                  <span className="hidden sm:inline">Iniciar Sesión</span>
+                </Link>
+              )}
+
               <button
                 onClick={toggleTheme}
                 className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"

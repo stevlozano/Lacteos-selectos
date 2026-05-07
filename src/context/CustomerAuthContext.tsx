@@ -56,7 +56,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
               .select('*')
               .eq('email', savedCustomer.email)
               .eq('is_active', true)
-              .single();
+              .maybeSingle();
             
             if (customerData) {
               setCustomer(customerData);
@@ -85,7 +85,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         .eq('email', email)
         .eq('password', password)
         .eq('is_active', true)
-        .single();
+        .maybeSingle();
 
       if (error || !customerData) {
         return false;

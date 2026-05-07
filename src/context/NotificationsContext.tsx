@@ -45,6 +45,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   // Convert ArrayBuffer to base64
   const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
@@ -117,9 +118,11 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   // Subscribe to push notifications
   const subscribe = async (userType: 'customer' | 'admin', customerId?: string): Promise<boolean> => {
-    if (!isSupported) return false;
+    if (!isSupported || isSubscribing || isSubscribed) return false;
 
     try {
+      setIsSubscribing(true);
+      
       // Request permission first
       const perm = await requestPermission();
       if (perm !== 'granted') return false;
@@ -186,6 +189,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error subscribing:', error);
       return false;
+    } finally {
+      setIsSubscribing(false);
     }
   };
 

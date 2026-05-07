@@ -3,13 +3,16 @@
 import { useCart } from '@/context/CartContext';
 import { useOrders } from '@/context/OrdersContext';
 import { useNotifications } from '@/context/NotificationsContext';
+import { useCustomerAuth } from '@/context/CustomerAuthContext';
 import { useState } from 'react';
 import { CartItem } from '@/types';
+import Link from 'next/link';
 
 export function Cart() {
   const { items, removeFromCart, updateQuantity, total, itemCount, clearCart, customerName, customerPhone, customerAddress, setCustomerInfo } = useCart();
   const { addOrder } = useOrders();
   const { subscribe, isSupported } = useNotifications();
+  const { isAuthenticated, customer } = useCustomerAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -234,6 +237,24 @@ export function Cart() {
           >
             Realizar Pedido
           </button>
+        ) : !isAuthenticated ? (
+          <div className="border border-neutral-200 dark:border-neutral-700 p-4 text-center">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
+              Debes iniciar sesión para realizar un pedido
+            </p>
+            <Link
+              href="/customer/login"
+              className="inline-block w-full bg-black dark:bg-white py-3 text-white dark:text-black font-medium hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+            >
+              Iniciar Sesión / Registrarse
+            </Link>
+            <button
+              onClick={() => setShowForm(false)}
+              className="mt-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white"
+            >
+              Volver al carrito
+            </button>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-3">
             <input

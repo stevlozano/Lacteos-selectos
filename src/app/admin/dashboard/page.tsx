@@ -142,20 +142,20 @@ export default function AdminPage() {
             <button
               key={item.id}
               onClick={() => setCurrentView(item.id)}
-              className={`flex flex-col items-center py-3 px-4 flex-1 transition-colors
+              className={`relative flex flex-col items-center py-2 px-1 sm:px-2 flex-1 transition-colors
                 ${currentView === item.id
                   ? 'text-black dark:text-white'
                   : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
                 }`}
             >
-              {item.icon === 'space_dashboard' && <DashboardIcon size={24} />}
-              {item.icon === 'inventory_2' && <InventoryIcon size={24} />}
-              {item.icon === 'receipt_long' && <ReceiptIcon size={24} />}
-              {item.icon === 'person' && <PersonIcon size={24} />}
-              {item.icon === 'settings' && <span className="material-symbols-outlined text-[24px]">settings</span>}
-              <span className="text-[10px] font-light tracking-wide mt-1">{item.label}</span>
+              {item.icon === 'space_dashboard' && <DashboardIcon size={20} />}
+              {item.icon === 'inventory_2' && <InventoryIcon size={20} />}
+              {item.icon === 'receipt_long' && <ReceiptIcon size={20} />}
+              {item.icon === 'person' && <PersonIcon size={20} />}
+              {item.icon === 'settings' && <span className="material-symbols-outlined text-[20px]">settings</span>}
+              <span className="hidden sm:block text-[9px] font-light tracking-wide mt-0.5">{item.label}</span>
               {currentView === item.id && (
-                <span className="absolute bottom-0 w-12 h-0.5 bg-black dark:bg-white rounded-t-full" />
+                <span className="absolute bottom-0 w-10 h-0.5 bg-black dark:bg-white rounded-t-full" />
               )}
             </button>
           ))}

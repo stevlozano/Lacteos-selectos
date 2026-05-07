@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { Product, CartItem } from '@/types';
+import { useCustomerAuth } from '@/context/CustomerAuthContext';
 
 interface CartContextType {
   items: CartItem[];
@@ -11,12 +12,20 @@ interface CartContextType {
   clearCart: () => void;
   total: number;
   itemCount: number;
+  customerName: string;
+  customerPhone: string;
+  customerAddress: string;
+  setCustomerInfo: (name: string, phone: string, address: string) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const { customer } = useCustomerAuth();
+  const [customerName, setCustomerName] = useState(customer?.name || '');
+  const [customerPhone, setCustomerPhone] = useState(customer?.phone || '');
+  const [customerAddress, setCustomerAddress] = useState(customer?.address || '');
 
   const addToCart = useCallback((product: Product) => {
     setItems(prev => {
@@ -52,12 +61,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }, []);
 
+  const setCustomerInfo = useCallback((name: string, phone: string, address: string) => {
+    setCustomerName(name);
+    setCustomerPhone(phone);
+    setCustomerAddress(address);
+  }, []);
+
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const itemCount = items.reduce((count, item) => count + item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
+      value={{ 
+        items, 
+        addToCart, 
+        removeFromCart, 
+        updateQuantity, 
+        clearCart, 
+        total, 
+        itemCount,
+        customerName,
+        customerPhone,
+        customerAddress,
+        setCustomerInfo
+      }}
     >
       {children}
     </CartContext.Provider>

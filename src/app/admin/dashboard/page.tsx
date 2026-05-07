@@ -9,13 +9,14 @@ import { useOrders } from '@/context/OrdersContext';
 import { useProducts } from '@/context/ProductsContext';
 import { Product, Order } from '@/types';
 import { DashboardIcon, ProductsIcon, OrdersIcon, StoreIcon, SunIcon, MoonIcon, LogoutIcon, InboxIcon, PersonIcon, AddIcon, DrinkIcon, KitchenIcon, EggIcon, CookieIcon, TodayIcon, PaymentsIcon, PendingActionsIcon, CheckIcon, CloseIcon, RefreshIcon, DeleteIcon, EditIcon, CheckCircleIcon, CancelIcon, ReceiptIcon, InventoryIcon, PendingIcon, CalendarIcon, NotificationsIcon, TruckIcon } from '@/components/Icons';
+import { AdminCustomersView } from '@/components/AdminCustomersView';
 import { AdminNotifications } from '@/components/AdminNotifications';
 import { AdminNotificationPrompt } from '@/components/AdminNotificationPrompt';
 import { supabase } from '@/lib/supabase';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 type FilterCategory = Category | 'all';
-type View = 'dashboard' | 'products' | 'orders';
+type View = 'dashboard' | 'products' | 'orders' | 'customers';
 
 // Helper function to format date string correctly without timezone issues
 function formatDateString(dateString: string, options?: { day?: 'numeric' | '2-digit'; month?: 'short' | 'long' | 'numeric'; year?: 'numeric' | '2-digit' }): string {
@@ -72,6 +73,7 @@ export default function AdminPage() {
     { id: 'dashboard' as View, label: 'Dashboard', icon: 'space_dashboard' },
     { id: 'products' as View, label: 'Productos', icon: 'inventory_2' },
     { id: 'orders' as View, label: 'Pedidos', icon: 'receipt_long' },
+    { id: 'customers' as View, label: 'Clientes', icon: 'person' },
   ];
 
   return (
@@ -104,6 +106,7 @@ export default function AdminPage() {
               {item.icon === 'space_dashboard' && <DashboardIcon size={20} className="opacity-70" />}
               {item.icon === 'inventory_2' && <InventoryIcon size={20} className="opacity-70" />}
               {item.icon === 'receipt_long' && <ReceiptIcon size={20} className="opacity-70" />}
+              {item.icon === 'person' && <PersonIcon size={20} className="opacity-70" />}
               <span className="text-sm font-light tracking-wide">{item.label}</span>
             </button>
           ))}
@@ -126,6 +129,7 @@ export default function AdminPage() {
         {currentView === 'dashboard' && <DashboardView />}
         {currentView === 'products' && <ProductsView />}
         {currentView === 'orders' && <OrdersView />}
+        {currentView === 'customers' && <AdminCustomersView />}
       </main>
 
       {/* Bottom Navigation Bar - Mobile (estilo WhatsApp) */}
@@ -144,6 +148,7 @@ export default function AdminPage() {
               {item.icon === 'space_dashboard' && <DashboardIcon size={24} />}
               {item.icon === 'inventory_2' && <InventoryIcon size={24} />}
               {item.icon === 'receipt_long' && <ReceiptIcon size={24} />}
+              {item.icon === 'person' && <PersonIcon size={24} />}
               <span className="text-[10px] font-light tracking-wide mt-1">{item.label}</span>
               {currentView === item.id && (
                 <span className="absolute bottom-0 w-12 h-0.5 bg-black dark:bg-white rounded-t-full" />

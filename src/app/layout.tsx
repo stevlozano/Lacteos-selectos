@@ -6,6 +6,7 @@ import { PageLoader } from "@/components/PageLoader";
 import { CartProvider } from '@/context/CartContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { CustomerAuthProvider } from '@/context/CustomerAuthContext';
 import { ProductsProvider } from '@/context/ProductsContext';
 import { OrdersProvider } from '@/context/OrdersContext';
 import { NotificationsProvider } from '@/context/NotificationsContext';
@@ -52,17 +53,19 @@ export default function RootLayout({
         <PageLoader>
           <ThemeProvider>
             <AuthProvider>
-              <ProductsProvider>
-                <OrdersProvider>
-                  <NotificationsProvider>
-                    <CartProvider>
-                      {children}
-                      <PWAInstaller />
-                      <UpdateNotification />
-                    </CartProvider>
-                  </NotificationsProvider>
-                </OrdersProvider>
-              </ProductsProvider>
+              <CustomerAuthProvider>
+                <ProductsProvider>
+                  <OrdersProvider>
+                    <NotificationsProvider>
+                      <CartProvider>
+                        {children}
+                        <PWAInstaller />
+                        <UpdateNotification />
+                      </CartProvider>
+                    </NotificationsProvider>
+                  </OrdersProvider>
+                </ProductsProvider>
+              </CustomerAuthProvider>
             </AuthProvider>
           </ThemeProvider>
         </PageLoader>

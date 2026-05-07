@@ -7,15 +7,15 @@ import { useState } from 'react';
 import { CartItem } from '@/types';
 
 export function Cart() {
-  const { items, removeFromCart, updateQuantity, total, itemCount, clearCart } = useCart();
+  const { items, removeFromCart, updateQuantity, total, itemCount, clearCart, customerName, customerPhone, customerAddress, setCustomerInfo } = useCart();
   const { addOrder } = useOrders();
   const { subscribe, isSupported } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    customerName: '',
-    phone: '',
-    address: '',
+    customerName: customerName || '',
+    phone: customerPhone || '',
+    address: customerAddress || '',
     notes: '',
     location: '',
     paymentMethod: 'efectivo' as 'yape' | 'efectivo' | 'credito',

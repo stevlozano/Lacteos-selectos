@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
+import { useCustomerAuth } from '@/context/CustomerAuthContext';
 import Link from 'next/link';
 
 export function Header() {
   const { theme, toggleTheme, mounted } = useTheme();
   const { isAuthenticated, user, logout } = useAuth();
+  const { customer, logout: customerLogout, isAuthenticated: customerAuthenticated } = useCustomerAuth();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   return (
@@ -89,21 +91,67 @@ export function Header() {
                         Cerrar Sesión
                       </button>
                     </>
-                  ) : null}
+                  ) : customerAuthenticated ? (
+                    <>
+                      <div className="px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+                        <p className="text-sm font-medium text-black dark:text-white">{customer?.name || customer?.email}</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Cliente</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          customerLogout();
+                          setShowMobileMenu(false);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                      >
+                        <span className="material-symbols-outlined">logout</span>
+                        Cerrar Sesión
+                      </button>
+                    </>
+                  ) : (
+                    <Link
+                      href="/customer/login"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-700/50 transition-colors"
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      <span className="material-symbols-outlined text-neutral-400">person</span>
+                      Iniciar Sesión Cliente
+                    </Link>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Desktop Admin Link - Solo visible cuando está autenticado */}
-            {isAuthenticated && (
-              <Link
-                href="/admin/dashboard"
-                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
-              >
-                <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
-                Admin
-              </Link>
-            )}
+            {/* Desktop Links - Visible según autenticación */}
+            <div className="hidden md:flex items-center gap-3">
+              {isAuthenticated && (
+                <Link
+                  href="/admin/dashboard"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+                  Admin
+                </Link>
+              )}
+              {customerAuthenticated && (
+                <Link
+                  href="/customer/login"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">person</span>
+                  {customer?.name || 'Mi Cuenta'}
+                </Link>
+              )}
+              {!isAuthenticated && !customerAuthenticated && (
+                <Link
+                  href="/customer/login"
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-black dark:bg-white text-white dark:text-black text-sm hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">person</span>
+                  Iniciar Sesión
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </header>

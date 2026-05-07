@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Order } from '@/types';
+import { useCustomerAuth } from '@/context/CustomerAuthContext';
 
 export type { Order };
 
@@ -67,6 +68,7 @@ const OrdersContext = createContext<OrdersContextType | undefined>(undefined);
 export function OrdersProvider({ children }: { children: ReactNode }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const { customer } = useCustomerAuth();
 
   // Load orders from Supabase
   useEffect(() => {
@@ -135,6 +137,8 @@ export function OrdersProvider({ children }: { children: ReactNode }) {
       payment_method: orderData.paymentMethod || 'efectivo',
       credit_due_date: orderData.creditDueDate,
       delivery_date: orderData.deliveryDate,
+      customer_id: customer?.id || null,
+      customer_email: customer?.email || null,
     };
 
     // Extended order data with late fee fields (for newer DB schema)

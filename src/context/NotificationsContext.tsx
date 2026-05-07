@@ -116,7 +116,7 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   };
 
   // Subscribe to push notifications
-  const subscribe = async (userType: 'customer' | 'admin'): Promise<boolean> => {
+  const subscribe = async (userType: 'customer' | 'admin', customerId?: string): Promise<boolean> => {
     if (!isSupported) return false;
 
     try {
@@ -148,16 +148,32 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         }
       };
 
-      // Save to Supabase
-      const { error } = await supabase.from('push_subscriptions').upsert({
+      // Save to Supabase with customer_id for personalized notifications
+      const subscriptionData: {
+        endpoint: string;
+        p256dh: string;
+        auth: string;
+        user_type: 'customer' | 'admin';
+        created_at: string;
+        customer_id?: string;
+      } = {
         endpoint: sub.endpoint,
         p256dh: sub.keys.p256dh,
         auth: sub.keys.auth,
         user_type: userType,
         created_at: new Date().toISOString()
-      }, {
-        onConflict: 'endpoint'
-      });
+      };
+
+      if (userType === 'customer' && customerId) {
+        subscriptionData.customer_id = customerId;
+      }
+
+      const { error } = await supabase.from('push_subscriptions').upsert(
+        subscriptionData,
+        {
+          onConflict: 'endpoint'
+        }
+      );
 
       if (error) {
         console.error('Error saving subscription:', error);

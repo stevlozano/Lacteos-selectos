@@ -16,7 +16,7 @@ import { supabase } from '@/lib/supabase';
 
 type Category = 'yogurt' | 'queso' | 'mantequilla' | 'manjar';
 type FilterCategory = Category | 'all';
-type View = 'dashboard' | 'products' | 'orders' | 'customers';
+type View = 'dashboard' | 'products' | 'orders' | 'customers' | 'settings';
 
 // Helper function to format date string correctly without timezone issues
 function formatDateString(dateString: string, options?: { day?: 'numeric' | '2-digit'; month?: 'short' | 'long' | 'numeric'; year?: 'numeric' | '2-digit' }): string {
@@ -74,6 +74,7 @@ export default function AdminPage() {
     { id: 'products' as View, label: 'Productos', icon: 'inventory_2' },
     { id: 'orders' as View, label: 'Pedidos', icon: 'receipt_long' },
     { id: 'customers' as View, label: 'Clientes', icon: 'person' },
+    { id: 'settings' as View, label: 'Configuración', icon: 'settings' },
   ];
 
   return (
@@ -107,6 +108,7 @@ export default function AdminPage() {
               {item.icon === 'inventory_2' && <InventoryIcon size={20} className="opacity-70" />}
               {item.icon === 'receipt_long' && <ReceiptIcon size={20} className="opacity-70" />}
               {item.icon === 'person' && <PersonIcon size={20} className="opacity-70" />}
+              {item.icon === 'settings' && <span className="material-symbols-outlined text-[20px] opacity-70">settings</span>}
               <span className="text-sm font-light tracking-wide">{item.label}</span>
             </button>
           ))}
@@ -130,6 +132,7 @@ export default function AdminPage() {
         {currentView === 'products' && <ProductsView />}
         {currentView === 'orders' && <OrdersView />}
         {currentView === 'customers' && <AdminCustomersView />}
+        {currentView === 'settings' && <AdminSettingsView />}
       </main>
 
       {/* Bottom Navigation Bar - Mobile (estilo WhatsApp) */}
@@ -149,6 +152,7 @@ export default function AdminPage() {
               {item.icon === 'inventory_2' && <InventoryIcon size={24} />}
               {item.icon === 'receipt_long' && <ReceiptIcon size={24} />}
               {item.icon === 'person' && <PersonIcon size={24} />}
+              {item.icon === 'settings' && <span className="material-symbols-outlined text-[24px]">settings</span>}
               <span className="text-[10px] font-light tracking-wide mt-1">{item.label}</span>
               {currentView === item.id && (
                 <span className="absolute bottom-0 w-12 h-0.5 bg-black dark:bg-white rounded-t-full" />
@@ -1622,4 +1626,270 @@ function OrderDetailsModal({
   );
 }
 
-// ...
+function AdminSettingsView() {
+  const { user, changePassword, addEmergencyAdmin, bypassUsers, logout } = useAuth();
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [emergencyEmail, setEmergencyEmail] = useState('');
+  const [emergencyPassword, setEmergencyPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+
+    if (newPassword !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    const success = await changePassword(currentPassword, newPassword);
+    
+    if (success) {
+      setMessage('Contraseña actualizada correctamente.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } else {
+      setError('La contraseña actual es incorrecta.');
+    }
+    setLoading(false);
+  };
+
+  const handleAddEmergencyAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setMessage('');
+
+    if (!emergencyEmail || !emergencyPassword) {
+      setError('Por favor completa todos los campos.');
+      return;
+    }
+
+    if (emergencyPassword.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    setLoading(true);
+    const success = await addEmergencyAdmin(emergencyEmail, emergencyPassword);
+    
+    if (success) {
+      setMessage(`Admin de emergencia creado: ${emergencyEmail}`);
+      setEmergencyEmail('');
+      setEmergencyPassword('');
+    } else {
+      setError('No se pudo crear el admin. El email ya existe o no estás autorizado.');
+    }
+    setLoading(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      <h2 className="text-2xl font-light text-black dark:text-white mb-8">Configuración</h2>
+
+      {message && (
+        <div className="mb-6 p-4 border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400 text-sm">
+          <span className="material-symbols-outlined text-sm mr-2 align-text-bottom">check_circle</span>
+          {message}
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-6 p-4 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+          <span className="material-symbols-outlined text-sm mr-2 align-text-bottom">error</span>
+          {error}
+        </div>
+      )}
+
+      <div className="grid gap-8 lg:grid-cols-2">
+        {/* Change Password */}
+        <div className="border border-neutral-100 dark:border-neutral-900 bg-white dark:bg-black p-6 rounded-lg">
+          <h3 className="text-lg font-light text-black dark:text-white mb-6 flex items-center gap-2">
+            <span className="material-symbols-outlined">lock</span>
+            Cambiar Contraseña
+          </h3>
+
+          <form onSubmit={handleChangePassword} className="space-y-4">
+            <div>
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
+                Contraseña Actual
+              </label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-base font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
+                Nueva Contraseña
+              </label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-base font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
+                Confirmar Nueva Contraseña
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-base font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                placeholder="Repite la contraseña"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-6 bg-black dark:bg-white text-white dark:text-black py-3 
+                         font-light tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200 
+                         transition-colors flex items-center justify-center gap-3
+                         disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm">save</span>
+                  Guardar Cambios
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* Emergency Admin */}
+        <div className="border border-neutral-100 dark:border-neutral-900 bg-white dark:bg-black p-6 rounded-lg">
+          <h3 className="text-lg font-light text-black dark:text-white mb-6 flex items-center gap-2">
+            <span className="material-symbols-outlined">person_add</span>
+            Crear Admin de Emergencia
+          </h3>
+
+          <form onSubmit={handleAddEmergencyAdmin} className="space-y-4">
+            <div>
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
+                Email del Nuevo Admin
+              </label>
+              <input
+                type="email"
+                value={emergencyEmail}
+                onChange={(e) => setEmergencyEmail(e.target.value)}
+                required
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-base font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                placeholder="nuevo@email.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-light text-neutral-400 dark:text-neutral-600 mb-2 uppercase tracking-widest">
+                Contraseña
+              </label>
+              <input
+                type="password"
+                value={emergencyPassword}
+                onChange={(e) => setEmergencyPassword(e.target.value)}
+                required
+                className="w-full px-0 py-3 border-0 border-b border-neutral-200 dark:border-neutral-800 
+                           bg-transparent text-black dark:text-white text-base font-light
+                           focus:outline-none focus:border-black dark:focus:border-white transition-colors"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-6 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-black py-3 
+                         font-light tracking-wide hover:bg-neutral-800 dark:hover:bg-neutral-200 
+                         transition-colors flex items-center justify-center gap-3
+                         disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm">person_add</span>
+                  Crear Admin
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* List of current admins */}
+          <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-neutral-800">
+            <h4 className="text-sm font-light text-neutral-400 dark:text-neutral-600 mb-4">
+              Admins Actuales ({bypassUsers.length})
+            </h4>
+            <div className="space-y-2">
+              {bypassUsers.map((admin) => (
+                <div key={admin.email} className="flex items-center justify-between p-3 bg-neutral-50 dark:bg-neutral-900 rounded">
+                  <span className="text-sm text-black dark:text-white">{admin.email}</span>
+                  {admin.isEmergency && (
+                    <span className="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 rounded">
+                      Emergencia
+                    </span>
+                  )}
+                  {admin.email === user?.email && (
+                    <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded">
+                      Tú
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Logout */}
+      <div className="mt-12 pt-8 border-t border-neutral-100 dark:border-neutral-900 text-center">
+        <button
+          onClick={handleLogout}
+          className="inline-flex items-center gap-2 px-6 py-3 border border-neutral-200 dark:border-neutral-800 
+                     text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white 
+                     hover:border-black dark:hover:border-white transition-colors"
+        >
+          <LogoutIcon size={18} />
+          <span className="text-sm font-light">Cerrar Sesión</span>
+        </button>
+      </div>
+    </div>
+  );
+}

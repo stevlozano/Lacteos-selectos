@@ -8,12 +8,21 @@ interface User {
   isAdmin: boolean;
 }
 
+interface BypassUser {
+  email: string;
+  password: string;
+  isEmergency?: boolean;
+}
+
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (email: string, password: string) => Promise<boolean>;
   createAdminUser: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  addEmergencyAdmin: (email: string, password: string) => Promise<boolean>;
+  bypassUsers: BypassUser[];
   isAuthenticated: boolean;
   isRegistrationOpen: boolean;
   hasRegisteredUsers: boolean;
@@ -23,6 +32,13 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_USER_KEY = 'auth_user';
+const BYPASS_USERS_KEY = 'admin_bypass_users';
+
+// Default bypass users
+const defaultBypassUsers: BypassUser[] = [
+  { email: 'jl7599409@gmail.com', password: '123456' },
+  { email: 'codeolsoftware@gmail.com', password: '123456' }
+];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => {
@@ -32,6 +48,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return saved ? JSON.parse(saved) : null;
     }
     return null;
+  });
+  const [bypassUsers, setBypassUsers] = useState<BypassUser[]>(() => {
+    // Load bypass users from localStorage or use defaults
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(BYPASS_USERS_KEY);
+      return saved ? JSON.parse(saved) : defaultBypassUsers;
+    }
+    return defaultBypassUsers;
   });
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -81,12 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Bypass para usuarios registrados
-    const bypassUsers = [
-      { email: 'jl7599409@gmail.com', password: '123456' },
-      { email: 'codeolsoftware@gmail.com', password: '123456' }
-    ];
-    
+    // Bypass para usuarios registrados (usa el estado actual)
     const bypass = bypassUsers.find(u => u.email === email && u.password === password);
     if (bypass) {
       const userData = { email, isAdmin: true };
@@ -107,6 +126,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userData = { email: data.user.email!, isAdmin: true };
     setUser(userData);
     localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(userData));
+    return true;
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (!user) {
+      console.error('No user logged in');
+      return false;
+    }
+
+    // Verify current password
+    const bypassUser = bypassUsers.find(u => u.email === user.email && u.password === currentPassword);
+    if (!bypassUser) {
+      console.error('Current password is incorrect');
+      return false;
+    }
+
+    // Update password
+    const updatedUsers = bypassUsers.map(u => 
+      u.email === user.email ? { ...u, password: newPassword } : u
+    );
+    
+    setBypassUsers(updatedUsers);
+    localStorage.setItem(BYPASS_USERS_KEY, JSON.stringify(updatedUsers));
+    
+    return true;
+  };
+
+  const addEmergencyAdmin = async (email: string, password: string): Promise<boolean> => {
+    if (!user) {
+      console.error('Only authenticated admins can add emergency users');
+      return false;
+    }
+
+    // Check if email already exists
+    if (bypassUsers.some(u => u.email === email)) {
+      console.error('Email already exists');
+      return false;
+    }
+
+    // Add new emergency admin
+    const newUser: BypassUser = { email, password, isEmergency: true };
+    const updatedUsers = [...bypassUsers, newUser];
+    
+    setBypassUsers(updatedUsers);
+    localStorage.setItem(BYPASS_USERS_KEY, JSON.stringify(updatedUsers));
+    
     return true;
   };
 
@@ -167,6 +232,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register, 
       createAdminUser,
       logout, 
+      changePassword,
+      addEmergencyAdmin,
+      bypassUsers,
       isAuthenticated: !!user,
       isRegistrationOpen,
       hasRegisteredUsers: !isRegistrationOpen,

@@ -333,3 +333,4 @@ npx @bubblewrap/cli build
 
 **Creado con:** Next.js + Supabase + Web Push API  
 **Deploy:** Vercel (Web) + Play Store (App)
+// Force redeploy

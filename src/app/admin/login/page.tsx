@@ -159,6 +159,15 @@ export default function AdminLogin() {
               />
             </div>
 
+            <div className="flex justify-end">
+              <Link
+                href="/admin/forgot-password"
+                className="text-xs font-light text-neutral-400 dark:text-neutral-600 hover:text-black dark:hover:text-white transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={loading}

@@ -52,7 +52,7 @@ export default function CustomerProfile() {
     if (!customer) return;
     
     try {
-      const success = await subscribe('customer', customer.id);
+      const success = await subscribe('customer');
       if (success) {
         setMessage('Notificaciones activadas');
       } else {

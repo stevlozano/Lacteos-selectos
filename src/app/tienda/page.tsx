@@ -81,16 +81,10 @@ export default function TiendaPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors">
-      {/* Navbar Minimalista */}
+      {/* Top Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-neutral-100 dark:border-neutral-900">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <span className="text-xl font-light tracking-tight text-black dark:text-white">
-                Lácteos Selectos
-              </span>
-            </Link>
-
+          <div className="flex items-center justify-between h-14">
             <div className="flex items-center gap-6">
               <Link 
                 href="/" 
@@ -104,34 +98,20 @@ export default function TiendaPage() {
               >
                 Tienda
               </Link>
-              {isAuthenticated && (
-                <button
-                  onClick={openHistory}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-sm font-light text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">receipt_long</span>
-                  <span className="hidden sm:inline">Pedidos</span>
-                </button>
-              )}
+            </div>
 
-              {isAuthenticated ? (
-                <Link
-                  href="/customer/profile"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-sm font-light text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">person</span>
-                  <span className="hidden sm:inline">{customer?.name || 'Mi Cuenta'}</span>
-                </Link>
-              ) : (
-                <Link
-                  href="/customer/login"
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black dark:bg-white text-sm font-light text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">login</span>
-                  <span className="hidden sm:inline">Iniciar Sesión</span>
-                </Link>
-              )}
+            <div className="flex items-center gap-2">
+              {/* Promociones (placeholder) */}
+              <button
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-100 to-yellow-100 dark:from-orange-900/20 dark:to-yellow-900/20 text-sm font-light text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800"
+                disabled
+              >
+                <span className="material-symbols-outlined text-sm">local_offer</span>
+                <span className="hidden sm:inline">Promociones</span>
+                <span className="hidden sm:inline text-xs bg-orange-200 dark:bg-orange-800 px-2 py-0.5 rounded-full">Próximamente</span>
+              </button>
 
+              {/* Toggle Tema */}
               <button
                 onClick={toggleTheme}
                 className="p-2 text-neutral-500 dark:text-neutral-400 hover:text-black dark:hover:text-white transition-colors"
@@ -172,8 +152,55 @@ export default function TiendaPage() {
         </div>
       </nav>
 
+      {/* Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white/80 dark:bg-black/80 backdrop-blur-md border-t border-neutral-100 dark:border-neutral-900">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
+                <span className="text-xl font-light tracking-tight text-black dark:text-white">
+                  Lácteos Selectos
+                </span>
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Historial de Pedidos */}
+              {isAuthenticated && (
+                <button
+                  onClick={openHistory}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-sm font-light text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">receipt_long</span>
+                  <span className="hidden sm:inline">Pedidos</span>
+                </button>
+              )}
+
+              {/* Perfil */}
+              {isAuthenticated ? (
+                <Link
+                  href="/customer/profile"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-100 dark:bg-neutral-900 text-sm font-light text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">person</span>
+                  <span className="hidden sm:inline">{customer?.name || 'Mi Cuenta'}</span>
+                </Link>
+              ) : (
+                <Link
+                  href="/customer/login"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black dark:bg-white text-sm font-light text-white dark:text-black hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">login</span>
+                  <span className="hidden sm:inline">Iniciar Sesión</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Header */}
-      <section className="pt-28 pb-8 px-4">
+      <section className="pt-32 pb-8 px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-extralight tracking-tight text-black dark:text-white">
             Hacer pedido

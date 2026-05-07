@@ -5,6 +5,23 @@ import { useCustomerAuth } from '@/context/CustomerAuthContext';
 import { useNotifications } from '@/context/NotificationsContext';
 import Link from 'next/link';
 
+interface OrderItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  unit: string;
+}
+
+interface Order {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  status: string;
+  payment_method: string;
+  created_at: string;
+}
+
 export default function CustomerProfile() {
   const { customer, logout, updateProfile } = useCustomerAuth();
   const { subscribe, isSubscribed, isSupported } = useNotifications();
@@ -16,6 +33,8 @@ export default function CustomerProfile() {
   });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
   useEffect(() => {
     if (customer) {
@@ -24,8 +43,26 @@ export default function CustomerProfile() {
         phone: customer.phone || '',
         address: customer.address || ''
       });
+      fetchOrders();
     }
   }, [customer]);
+
+  const fetchOrders = async () => {
+    if (!customer?.email) return;
+    
+    setOrdersLoading(true);
+    try {
+      const response = await fetch(`/api/customer/orders?email=${encodeURIComponent(customer.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data.orders || []);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!customer) return;
@@ -323,6 +360,100 @@ export default function CustomerProfile() {
                   <p className="text-sm text-neutral-400 dark:text-neutral-600">
                     Tu navegador no soporta notificaciones push
                   </p>
+                </div>
+              )}
+            </div>
+
+            {/* Order History */}
+            <div className="border border-neutral-100 dark:border-neutral-900 bg-white dark:bg-black p-6 rounded-lg">
+              <h2 className="text-xl font-light text-black dark:text-white mb-6">
+                Historial de Pedidos
+              </h2>
+
+              {ordersLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="relative">
+                    <div className="w-8 h-8 border-2 border-neutral-200 dark:border-neutral-800 rounded-full"></div>
+                    <div className="absolute top-0 left-0 w-8 h-8 border-2 border-black dark:border-white rounded-full border-t-transparent animate-spin"></div>
+                  </div>
+                </div>
+              ) : orders.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-neutral-400 dark:text-neutral-600">
+                    No tienes pedidos registrados
+                  </p>
+                  <Link
+                    href="/tienda"
+                    className="mt-4 inline-block text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Ir a la tienda
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {orders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="border border-neutral-100 dark:border-neutral-800 p-4 rounded-lg hover:border-neutral-200 dark:hover:border-neutral-700 transition-colors"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-black dark:text-white">
+                          Pedido #{order.id.substring(0, 8)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          order.status === 'completed' 
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                            : order.status === 'pending'
+                            ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
+                            : order.status === 'cancelled'
+                            ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                            : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400'
+                        }`}>
+                          {order.status === 'completed' ? 'Completado'
+                            : order.status === 'pending' ? 'Pendiente'
+                            : order.status === 'cancelled' ? 'Cancelado'
+                            : order.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-400 dark:text-neutral-600 mb-2">
+                        {new Date(order.created_at).toLocaleDateString('es-PE', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      <div className="space-y-1 mb-3">
+                        {order.items.slice(0, 3).map((item: OrderItem, idx: number) => (
+                          <p key={idx} className="text-sm text-neutral-600 dark:text-neutral-400">
+                            • {item.name} x {item.quantity}
+                          </p>
+                        ))}
+                        {order.items.length > 3 && (
+                          <p className="text-xs text-neutral-400 dark:text-neutral-600">
+                            + {order.items.length - 3} productos más
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-neutral-100 dark:border-neutral-800">
+                        <span className="text-sm font-medium text-black dark:text-white">
+                          Total: S/{order.total.toFixed(2)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          order.payment_method === 'yape'
+                            ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+                            : order.payment_method === 'credito'
+                            ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+                            : 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                        }`}>
+                          {order.payment_method === 'yape' ? 'Yape'
+                            : order.payment_method === 'credito' ? 'Crédito'
+                            : 'Efectivo'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
